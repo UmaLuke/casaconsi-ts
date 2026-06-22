@@ -1,0 +1,31 @@
+/* src/index.css */
+@import "tailwindcss";
+@plugin "daisyui";
+
+/* 1. Definimos nuestros colores de marca personalizados */
+@theme {
+  --color-brand-navy: #0D2B4E;
+  --color-brand-orange: #FF7A00;
+  --color-brand-teal: #00B4C4;
+}
+html{
+  scroll-behavior: smooth;
+}
+
+/* 2. Configuramos DaisyUI y nuestro tema "casaconsi" */
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Estas variables controlan el tema por defecto (claro) de DaisyUI */
+  --p: #0D2B4E; /* Primary (Navy) */
+  --s: #00B4C4; /* Secondary (Teal) */
+  --a: #FF7A00; /* Accent (Orange) */
+  --b1: #ffffff; /* Base 100 (Fondo blanco) */
+  --b2: #f3f4f6; /* Base 200 (Fondo gris claro) */
+  --bc: #1f2937; /* Base content (Texto principal) */
+  
+  /* Estilos globales de las formas */
+  --rounded-box: 1rem;
+  --rounded-btn: 0.5rem;
+  --rounded-badge: 1.9rem;
+}
