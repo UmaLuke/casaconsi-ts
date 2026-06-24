@@ -1,16 +1,20 @@
 // src/components/features/landing/ExploreSpaces.tsx
+import { Link } from 'react-router-dom';
 import { MapPin, User, CheckCircle2 } from 'lucide-react';
 import type { Space } from '../../../types/space';
 
 export const ExploreSpaces = () => {
-  // Datos simulados estructurados pensando en tu futuro backend
   const mockSpaces: Space[] = [
     {
       id: 1,
       title: "Habitación Luminosa con Baño Privado",
       location: "Centro Sur, a 15 min de la Universidad",
+      neighborhood: "Centro Sur",
       price: "$150.000 ARS",
       hostType: "Propietario",
+      hostGeneration: "adulto-mayor",
+      purpose: "estudiar",
+      duration: "anual",
       amenities: ["Wifi", "Escritorio", "Cocina compartida"],
       imageUrl: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&auto=format&fit=crop&q=60",
       verified: true
@@ -19,8 +23,12 @@ export const ExploreSpaces = () => {
       id: 2,
       title: "Anexo Independiente en Casa Familiar",
       location: "Barrio Norte, Zona Residencial",
+      neighborhood: "Barrio Norte",
       price: "$180.000 ARS",
       hostType: "Familia Anfitriona",
+      hostGeneration: "adulto-mayor",
+      purpose: "compartir-gastos",
+      duration: "semestral-cuatrimestral",
       amenities: ["Entrada independiente", "Jardín", "Servicios incluidos"],
       imageUrl: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&auto=format&fit=crop&q=60",
       verified: true
@@ -29,8 +37,12 @@ export const ExploreSpaces = () => {
       id: 3,
       title: "Espacio de Estudio y Descanso",
       location: "Zona Facultades",
+      neighborhood: "Zona Facultades",
       price: "$130.000 ARS",
       hostType: "Propietario",
+      hostGeneration: "joven-adulto",
+      purpose: "estudiar",
+      duration: "intermitente-ocasional",
       amenities: ["Silencioso", "Wifi Alta Velocidad", "Lavadero"],
       imageUrl: "https://images.unsplash.com/photo-1554995207-c18c203602cb?q=80&w=600&auto=format&fit=crop",
       verified: false
@@ -50,9 +62,9 @@ export const ExploreSpaces = () => {
               Descubre lugares que se adaptan a tus necesidades académicas y de estilo de vida, ofrecidos por anfitriones dispuestos a compartir su espacio.
             </p>
           </div>
-          <button className="btn btn-outline border-brand-teal text-brand-teal hover:bg-brand-teal hover:text-white hover:border-brand-teal">
+          <Link to="/explorar" className="btn btn-outline border-brand-teal text-brand-teal hover:bg-brand-teal hover:text-white hover:border-brand-teal">
             Ver todos los espacios
-          </button>
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
