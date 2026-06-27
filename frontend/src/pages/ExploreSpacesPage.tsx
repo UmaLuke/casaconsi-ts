@@ -1,132 +1,61 @@
 // src/pages/ExploreSpacesPage.tsx
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { MapPin, User, CheckCircle2, SlidersHorizontal, X } from 'lucide-react';
 import { Header } from '../components/layout/Header';
 import { Footer } from '../components/layout/Footer';
 import { useSpaceFilters } from '../hooks/useSpaceFilters';
+import { useExchangeRate } from '../hooks/useExchangeRate'; // <-- 1. Importamos tu nuevo hook
 import type { Space } from '../types/space';
-import {
-  GENERATION_LABELS,
-  PURPOSE_LABELS,
-  DURATION_LABELS,
-  type Generation,
-  type Purpose,
-  type Duration,
-} from '../types/filters';
+import { GENERATION_LABELS, PURPOSE_LABELS, DURATION_LABELS, type Generation, type Purpose, type Duration,} from '../types/filters';
 
-// Dataset simulado amplio para probar combinaciones reales de filtros
 const mockSpaces: Space[] = [
-  {
-    id: 1,
-    title: 'Habitación Luminosa con Baño Privado',
-    location: 'Centro Sur, a 15 min de la Universidad',
-    neighborhood: 'Centro Sur',
-    price: 150000,
-    currency: 'ARS',
-    hostType: 'Propietario',
-    hostGeneration: 'adulto-mayor',
-    purpose: 'estudiar',
-    duration: 'anual',
-    amenities: ['Wifi', 'Escritorio', 'Cocina compartida'],
-    imageUrl: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&auto=format&fit=crop&q=60',
-    verified: true,
-  },
-  {
-    id: 2,
-    title: 'Anexo Independiente en Casa Familiar',
-    location: 'Barrio Norte, Zona Residencial',
-    neighborhood: 'Barrio Norte',
-    price: 180000,
-    currency: 'ARS',
-    hostType: 'Familia Anfitriona',
-    hostGeneration: 'adulto-mayor',
-    purpose: 'compartir-gastos',
-    duration: 'semestral-cuatrimestral',
-    amenities: ['Entrada independiente', 'Jardín', 'Servicios incluidos'],
-    imageUrl: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&auto=format&fit=crop&q=60',
-    verified: true,
-  },
-  {
-    id: 3,
-    title: 'Espacio de Estudio y Descanso',
-    location: 'Zona Facultades',
-    neighborhood: 'Zona Facultades',
-    price: 130000,
-    currency: 'ARS',
-    hostType: 'Propietario',
-    hostGeneration: 'joven-adulto',
-    purpose: 'estudiar',
-    duration: 'intermitente-ocasional',
-    amenities: ['Silencioso', 'Wifi Alta Velocidad', 'Lavadero'],
-    imageUrl: 'https://images.unsplash.com/photo-1554995207-c18c203602cb?q=80&w=600&auto=format&fit=crop',
-    verified: false,
-  },
-  {
-    id: 4,
-    title: 'Habitación en Dúplex Compartido',
-    location: 'Güemes, cerca de bares y plazas',
-    neighborhood: 'Güemes',
-    price: 165000,
-    currency: 'ARS',
-    hostType: 'Propietaria',
-    hostGeneration: 'joven-adulto',
-    purpose: 'compartir-gastos',
-    duration: 'otra-modalidad',
-    amenities: ['Terraza', 'Wifi', 'Cocina compartida'],
-    imageUrl: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&auto=format&fit=crop&q=60',
-    verified: true,
-  },
-  {
-    id: 5,
-    title: 'Cuarto con Vista al Jardín',
-    location: 'Cofico, zona tranquila y arbolada',
-    neighborhood: 'Cofico',
-    price: 140000,
-    currency: 'ARS',
-    hostType: 'Propietario',
-    hostGeneration: 'adulto-mayor',
-    purpose: 'estudiar',
-    duration: 'semestral-cuatrimestral',
-    amenities: ['Jardín', 'Desayuno incluido', 'Wifi'],
-    imageUrl: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600&auto=format&fit=crop&q=60',
-    verified: true,
-  },
+  { id: 1, title: 'Habitación Luminosa con Baño Privado', location: 'Centro Sur, a 15 min de la Universidad', neighborhood: 'Centro Sur', price: 150000, currency: 'ARS', hostType: 'Propietario', hostGeneration: 'adulto-mayor', purpose: 'estudiar', duration: 'anual', amenities: ['Wifi', 'Escritorio', 'Cocina compartida'], imageUrl: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&auto=format&fit=crop&q=60', verified: true },
+  { id: 2, title: 'Anexo Independiente en Casa Familiar', location: 'Barrio Norte, Zona Residencial', neighborhood: 'Barrio Norte', price: 180000, currency: 'ARS', hostType: 'Familia Anfitriona', hostGeneration: 'adulto-mayor', purpose: 'compartir-gastos', duration: 'semestral-cuatrimestral', amenities: ['Entrada independiente', 'Jardín', 'Servicios incluidos'], imageUrl: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&auto=format&fit=crop&q=60', verified: true },
+  { id: 3, title: 'Espacio de Estudio y Descanso', location: 'Zona Facultades', neighborhood: 'Zona Facultades', price: 130000, currency: 'ARS', hostType: 'Propietario', hostGeneration: 'joven-adulto', purpose: 'estudiar', duration: 'intermitente-ocasional', amenities: ['Silencioso', 'Wifi Alta Velocidad', 'Lavadero'], imageUrl: 'https://images.unsplash.com/photo-1554995207-c18c203602cb?q=80&w=600&auto=format&fit=crop', verified: false },
+  { id: 4, title: 'Habitación en Dúplex Compartido', location: 'Güemes, cerca de bares y plazas', neighborhood: 'Güemes', price: 165000, currency: 'ARS', hostType: 'Propietaria', hostGeneration: 'joven-adulto', purpose: 'compartir-gastos', duration: 'otra-modalidad', amenities: ['Terraza', 'Wifi', 'Cocina compartida'], imageUrl: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&auto=format&fit=crop&q=60', verified: true },
+  { id: 5, title: 'Cuarto con Vista al Jardín', location: 'Cofico, zona tranquila y arbolada', neighborhood: 'Cofico', price: 140000, currency: 'ARS', hostType: 'Propietario', hostGeneration: 'adulto-mayor', purpose: 'estudiar', duration: 'semestral-cuatrimestral', amenities: ['Jardín', 'Desayuno incluido', 'Wifi'], imageUrl: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600&auto=format&fit=crop&q=60', verified: true },
 ];
 
 export const ExploreSpacesPage = () => {
   const { filters, updateFilter, clearFilters, activeFilterCount } = useSpaceFilters();
+  
+  // 2. Instanciamos el hook de cotización y creamos un estado local para la preferencia del usuario
+  const { rate, isLoading } = useExchangeRate();
+  const [preferredCurrency, setPreferredCurrency] = useState<'ARS' | 'USD'>('ARS');
 
   const filteredSpaces = useMemo(() => {
     return mockSpaces.filter((space) => {
-      if (filters.neighborhood && !space.neighborhood.toLowerCase().includes(filters.neighborhood.toLowerCase())) {
-        return false;
-      }
-      if (filters.generation && space.hostGeneration !== filters.generation) {
-        return false;
-      }
-      if (filters.purpose && space.purpose !== filters.purpose) {
-        return false;
-      }
-      if (filters.duration && space.duration !== filters.duration) {
-        return false;
-      }
-      if (filters.verifiedOnly && !space.verified) {
-        return false;
-      }
+      if (filters.neighborhood && !space.neighborhood.toLowerCase().includes(filters.neighborhood.toLowerCase())) return false;
+      if (filters.generation && space.hostGeneration !== filters.generation) return false;
+      if (filters.purpose && space.purpose !== filters.purpose) return false;
+      if (filters.duration && space.duration !== filters.duration) return false;
+      if (filters.verifiedOnly && !space.verified) return false;
       return true;
     });
   }, [filters]);
 
-  const formatPrice = (price: number, currency: string) => {
+  // 3. Actualizamos el formateador para que haga la matemática usando el valor de la API
+  const formatPrice = (basePrice: number, baseCurrency: 'ARS' | 'USD') => {
+    let finalPrice = basePrice;
+
+    // Si el usuario quiere ver en USD y el precio base está en ARS
+    if (preferredCurrency === 'USD' && baseCurrency === 'ARS' && rate) {
+      finalPrice = basePrice / rate;
+    } 
+    // Si el usuario quiere ver en ARS y el precio base estuviera en USD (para futuros inmuebles)
+    else if (preferredCurrency === 'ARS' && baseCurrency === 'USD' && rate) {
+      finalPrice = basePrice * rate;
+    }
+
     return new Intl.NumberFormat('es-AR', {
       style: 'currency',
-      currency: currency,
-      maximumFractionDigits: 0,
-    }).format(price);
+      currency: preferredCurrency,
+      maximumFractionDigits: preferredCurrency === 'USD' ? 0 : 0, // Mostramos números enteros para alquileres
+    }).format(finalPrice);
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-base-200/40">
+    <div data-theme="light" className="flex flex-col min-h-screen bg-white">
       <Header />
       
       <main className="flex-grow pt-28 md:pt-32 pb-20">
@@ -141,8 +70,7 @@ export const ExploreSpacesPage = () => {
             </p>
           </div>
 
-          {/* Panel de Filtros Colapsable */}
-          <div className="collapse collapse-arrow bg-base-100 shadow-sm border border-base-200 mb-10 overflow-visible">
+          <div className="collapse collapse-arrow bg-base-100 shadow-sm border border-base-200 mb-8 overflow-visible">
             <input type="checkbox" className="peer" aria-label="Alternar panel de filtros" /> 
             
             <div className="collapse-title flex items-center gap-3 p-5 md:px-6 md:py-4 peer-checked:pb-2 transition-all">
@@ -254,9 +182,45 @@ export const ExploreSpacesPage = () => {
             </div>
           </div>
 
-          <p className="text-sm text-base-content/60 mb-6 font-semibold uppercase tracking-wider">
-            {filteredSpaces.length} {filteredSpaces.length === 1 ? 'espacio encontrado' : 'espacios encontrados'}
-          </p>
+          {/* 4. Cabecera de resultados con el Toggle de Moneda */}
+          <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
+            <p className="text-sm text-base-content/60 font-semibold uppercase tracking-wider">
+              {filteredSpaces.length} {filteredSpaces.length === 1 ? 'espacio encontrado' : 'espacios encontrados'}
+            </p>
+            
+            {/* Toggle ARS / USD - Estilo SaaS Premium */}
+            <div className="flex items-center gap-3 bg-base-300/80 px-5 py-2.5 rounded-full border border-base-content/5 shadow-inner backdrop-blur-sm w-fit">
+              <span 
+                className={`text-sm font-black tracking-wide transition-all duration-300 ${
+                  preferredCurrency === 'ARS' 
+                    ? 'text-brand-teal drop-shadow-[0_0_8px_rgba(0,180,196,0.5)]' 
+                    : 'text-base-content/40'
+                }`}
+              >
+                ARS
+              </span>
+              
+              <input 
+                type="checkbox" 
+                className="toggle toggle-md border-transparent bg-brand-teal/80 hover:bg-brand-teal [--tglbg:#a5f3fc] checked:border-transparent checked:bg-brand-orange/90 checked:hover:bg-brand-orange checked:[--tglbg:#fed7aa] transition-colors shadow-sm" 
+                checked={preferredCurrency === 'USD'}
+                onChange={(e) => setPreferredCurrency(e.target.checked ? 'USD' : 'ARS')}
+                disabled={isLoading}
+                aria-label="Cambiar moneda"
+              />
+              
+              <span 
+                className={`text-sm font-black tracking-wide flex items-center transition-all duration-300 ${
+                  preferredCurrency === 'USD' 
+                    ? 'text-brand-orange drop-shadow-[0_0_8px_rgba(0,180,196,0.5)]' 
+                    : 'text-base-content/40'
+                }`}
+              >
+                USD
+                {isLoading && <span className="loading loading-spinner w-3 h-3 ml-2 opacity-50"></span>}
+              </span>
+            </div>
+          </div>
 
           {filteredSpaces.length === 0 ? (
             <div className="w-full py-20 flex flex-col items-center justify-center text-center gap-4 bg-base-100 border border-dashed border-base-300 rounded-3xl shadow-sm">
@@ -266,12 +230,12 @@ export const ExploreSpacesPage = () => {
               <div>
                 <h3 className="text-lg font-bold text-base-content">No hay resultados</h3>
                 <p className="text-base-content/60 font-medium mt-1 max-w-sm">
-                  Intenta ajustar o eliminar algunos filtros para encontrar más espacios de convivencia.
+                  Intenta ajustar o eliminar algunos filtros para encontrar más espacios.
                 </p>
               </div>
               <button 
                 onClick={clearFilters} 
-                className="btn btn-sm mt-2 bg-brand-teal/10 text-brand-teal border-none hover:bg-brand-teal/20"
+                className="btn btn-sm mt-2 bg-brand-teal/10 text-brand-teal border-none hover:bg-brand-teal/20 transition-colors"
               >
                 Limpiar búsqueda
               </button>
