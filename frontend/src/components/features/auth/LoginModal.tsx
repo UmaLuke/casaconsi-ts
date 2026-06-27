@@ -1,34 +1,64 @@
 // src/components/features/auth/LoginModal.tsx
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { LoginForm, type LoginFormData } from './LoginForm';
 import { useAuth } from '../../../hooks/useAuth';
 import type { User } from '../../../types/auth';
 
 export const LoginModal = () => {
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogin = async (credentials: LoginFormData) => {
-    const mockUser: User = {
-      name: "Luni Pozzo",
-      email: credentials.email,
-      role: "host",
-      title: "Fundadora",
-      avatar: "/casa1.png"
-    };
-    
+    // 1. LÓGICA MOCK: Simulamos una respuesta del Backend basada en el email
+    let mockUser: User;
+
+    // Si escribes cualquier correo que contenga la palabra "estudiante"
+    if (credentials.email.toLowerCase().includes('estudiante')) {
+      mockUser = {
+        name: "Tomás G.",
+        email: credentials.email,
+        role: "student",
+        generation: "joven-adulto", // <-- Esto activará tu filtro automático
+        avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=150&auto=format&fit=crop"
+      };
+    } else {
+      // Si escribes cualquier otro correo (ej. host@correo.com)
+      mockUser = {
+        name: "Luni Pozzo",
+        email: credentials.email,
+        role: "host",
+        generation: "adulto-mayor",
+        title: "Fundadora",
+        avatar: "/casa1.png" // Usando tu avatar local
+      };
+    }
+
+    // 2. Guardamos el usuario en el estado global (Context)
     login(mockUser);
-    (document.getElementById('login_modal') as HTMLDialogElement | null)?.close();
+
+    // 3. Cerramos el modal de DaisyUI
+    const modal = document.getElementById('login_modal') as HTMLDialogElement | null;
+    if (modal) {
+      modal.close();
+    }
+
+    // 4. Redirigimos a la página de explorar para ver la magia de los filtros en acción
+    navigate('/explorar');
   };
 
   const handleCloseModal = () => {
-    (document.getElementById('login_modal') as HTMLDialogElement | null)?.close();
+    const modal = document.getElementById('login_modal') as HTMLDialogElement | null;
+    if (modal) {
+      modal.close();
+    }
   };
 
   return (
     <dialog id="login_modal" className="modal modal-bottom sm:modal-middle transition-all duration-300">
       <div className="modal-box p-0 overflow-hidden bg-base-100 shadow-2xl">
         
-        <div className="bg-brand-teal/50 p-6 flex justify-between items-center border-b border-base-300">
+        {/* Header del Modal */}
+        <div className="bg-brand-teal/10 p-6 flex justify-between items-center border-b border-base-200">
           <div>
             <h3 className="font-extrabold text-2xl text-base-content tracking-tight">¡Hola de nuevo!</h3>
             <p className="text-sm text-base-content/70 mt-1 font-medium">Ingresa a tu cuenta para continuar.</p>
@@ -43,11 +73,13 @@ export const LoginModal = () => {
           </form>
         </div>
 
+        {/* Cuerpo del Formulario */}
         <div className="p-6 sm:p-8 flex justify-center">
           <LoginForm onSubmit={handleLogin} isLoading={false} />
         </div>
 
-        <div className="bg-brand-teal/50 p-5 text-center border-t border-base-300">
+        {/* Footer de Registro */}
+        <div className="bg-base-200/50 p-5 text-center border-t border-base-200">
           <p className="text-sm text-base-content/70 font-medium">
             ¿Aún no tienes una cuenta?{' '}
             <Link 
@@ -59,9 +91,9 @@ export const LoginModal = () => {
             </Link>
           </p>
         </div>
-
       </div>
       
+      {/* Clic fuera del modal para cerrar */}
       <form method="dialog" className="modal-backdrop bg-base-content/20 backdrop-blur-sm">
         <button>cerrar</button>
       </form>

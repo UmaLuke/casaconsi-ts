@@ -1,8 +1,9 @@
 // src/pages/ExploreSpacesPage.tsx
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { MapPin, User, CheckCircle2, SlidersHorizontal, X } from 'lucide-react';
 import { Header } from '../components/layout/Header';
 import { Footer } from '../components/layout/Footer';
+import { useSpaceFilters } from '../hooks/useSpaceFilters';
 import type { Space } from '../types/space';
 import {
   GENERATION_LABELS,
@@ -11,18 +12,17 @@ import {
   type Generation,
   type Purpose,
   type Duration,
-  type SpaceFilters,
 } from '../types/filters';
 
-// Dataset simulado más amplio que el teaser de la landing, pensado para
-// poder probar combinaciones reales de los 3 filtros (generación, propósito, duración).
+// Dataset simulado amplio para probar combinaciones reales de filtros
 const mockSpaces: Space[] = [
   {
     id: 1,
     title: 'Habitación Luminosa con Baño Privado',
     location: 'Centro Sur, a 15 min de la Universidad',
     neighborhood: 'Centro Sur',
-    price: '$150.000 ARS',
+    price: 150000,
+    currency: 'ARS',
     hostType: 'Propietario',
     hostGeneration: 'adulto-mayor',
     purpose: 'estudiar',
@@ -36,7 +36,8 @@ const mockSpaces: Space[] = [
     title: 'Anexo Independiente en Casa Familiar',
     location: 'Barrio Norte, Zona Residencial',
     neighborhood: 'Barrio Norte',
-    price: '$180.000 ARS',
+    price: 180000,
+    currency: 'ARS',
     hostType: 'Familia Anfitriona',
     hostGeneration: 'adulto-mayor',
     purpose: 'compartir-gastos',
@@ -50,7 +51,8 @@ const mockSpaces: Space[] = [
     title: 'Espacio de Estudio y Descanso',
     location: 'Zona Facultades',
     neighborhood: 'Zona Facultades',
-    price: '$130.000 ARS',
+    price: 130000,
+    currency: 'ARS',
     hostType: 'Propietario',
     hostGeneration: 'joven-adulto',
     purpose: 'estudiar',
@@ -64,7 +66,8 @@ const mockSpaces: Space[] = [
     title: 'Habitación en Dúplex Compartido',
     location: 'Güemes, cerca de bares y plazas',
     neighborhood: 'Güemes',
-    price: '$165.000 ARS',
+    price: 165000,
+    currency: 'ARS',
     hostType: 'Propietaria',
     hostGeneration: 'joven-adulto',
     purpose: 'compartir-gastos',
@@ -78,7 +81,8 @@ const mockSpaces: Space[] = [
     title: 'Cuarto con Vista al Jardín',
     location: 'Cofico, zona tranquila y arbolada',
     neighborhood: 'Cofico',
-    price: '$140.000 ARS',
+    price: 140000,
+    currency: 'ARS',
     hostType: 'Propietario',
     hostGeneration: 'adulto-mayor',
     purpose: 'estudiar',
@@ -87,54 +91,10 @@ const mockSpaces: Space[] = [
     imageUrl: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600&auto=format&fit=crop&q=60',
     verified: true,
   },
-  {
-    id: 6,
-    title: 'Loft Independiente sobre Garaje',
-    location: 'Nueva Córdoba, a pasos de la facultad',
-    neighborhood: 'Nueva Córdoba',
-    price: '$190.000 ARS',
-    hostType: 'Familia Anfitriona',
-    hostGeneration: 'joven-adulto',
-    purpose: 'estudiar',
-    duration: 'anual',
-    amenities: ['Entrada independiente', 'Cochera', 'Wifi'],
-    imageUrl: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=600&auto=format&fit=crop&q=60',
-    verified: false,
-  },
-  {
-    id: 7,
-    title: 'Habitación Cálida en Casa de Familia',
-    location: 'Alta Córdoba, ambiente hogareño',
-    neighborhood: 'Alta Córdoba',
-    price: '$120.000 ARS',
-    hostType: 'Propietaria',
-    hostGeneration: 'adulto-mayor',
-    purpose: 'compartir-gastos',
-    duration: 'intermitente-ocasional',
-    amenities: ['Comidas compartidas', 'Wifi', 'Lavadero'],
-    imageUrl: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=600&auto=format&fit=crop&q=60',
-    verified: true,
-  },
-  {
-    id: 8,
-    title: 'Espacio Moderno en PH Renovado',
-    location: 'General Paz, edificio reciclado',
-    neighborhood: 'General Paz',
-    price: '$175.000 ARS',
-    hostType: 'Propietario',
-    hostGeneration: 'joven-adulto',
-    purpose: 'compartir-gastos',
-    duration: 'otra-modalidad',
-    amenities: ['Wifi Alta Velocidad', 'Escritorio', 'Terraza'],
-    imageUrl: 'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=600&auto=format&fit=crop&q=60',
-    verified: false,
-  },
 ];
 
-const EMPTY_FILTERS: SpaceFilters = {};
-
 export const ExploreSpacesPage = () => {
-  const [filters, setFilters] = useState<SpaceFilters>(EMPTY_FILTERS);
+  const { filters, updateFilter, clearFilters, activeFilterCount } = useSpaceFilters();
 
   const filteredSpaces = useMemo(() => {
     return mockSpaces.filter((space) => {
@@ -157,127 +117,136 @@ export const ExploreSpacesPage = () => {
     });
   }, [filters]);
 
-  const activeFilterCount = Object.values(filters).filter((value) => value !== undefined && value !== '' && value !== false).length;
+  const formatPrice = (price: number, currency: string) => {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: currency,
+      maximumFractionDigits: 0,
+    }).format(price);
+  };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-base-200/40">
       <Header />
-
-      <main className="flex-grow pt-28 md:pt-32 pb-20 bg-base-200/40">
+      
+      <main className="flex-grow pt-28 md:pt-32 pb-20">
         <div className="container mx-auto px-4 md:px-6">
+          
           <div className="mb-10 space-y-2">
-            <h1 className="text-3xl md:text-4xl font-bold text-base-content">Explorar Espacios</h1>
-            <p className="text-base-content/70 text-lg max-w-2xl">
-              Filtrá por generación del anfitrión, propósito y duración para encontrar el espacio que mejor encaje con tu búsqueda.
+            <h1 className="text-3xl md:text-4xl font-extrabold text-base-content tracking-tight">
+              Explorar Espacios
+            </h1>
+            <p className="text-base-content/70 text-lg max-w-2xl font-medium">
+              Encuentra el espacio ideal. Los filtros se adaptan automáticamente para ofrecerte las mejores opciones de convivencia.
             </p>
           </div>
 
-          {/* Barra de filtros */}
-          <div className="card bg-base-100 shadow-md border border-base-200 mb-10">
-            <div className="card-body p-5 md:p-6">
-              <div className="flex items-center gap-2 mb-4 text-base-content/80">
+          {/* Panel de Filtros Colapsable */}
+          <div className="collapse collapse-arrow bg-base-100 shadow-sm border border-base-200 mb-10 overflow-visible">
+            <input type="checkbox" className="peer" aria-label="Alternar panel de filtros" /> 
+            
+            <div className="collapse-title flex items-center gap-3 p-5 md:px-6 md:py-4 peer-checked:pb-2 transition-all">
+              <div className="flex items-center gap-2 text-base-content/90">
                 <SlidersHorizontal className="size-5 text-brand-teal" />
-                <h2 className="font-bold">Filtros</h2>
-                {activeFilterCount > 0 && (
-                  <span className="badge badge-sm bg-brand-orange text-white border-none">{activeFilterCount}</span>
-                )}
+                <h2 className="font-bold text-lg select-none">Filtros</h2>
               </div>
+              {activeFilterCount > 0 && (
+                <span className="badge badge-sm bg-brand-orange text-white border-none font-bold">
+                  {activeFilterCount}
+                </span>
+              )}
+            </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="collapse-content px-5 md:px-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pt-2">
+                
                 <div className="form-control">
                   <label className="label py-1">
-                    <span className="label-text text-sm font-medium">Barrio o zona</span>
+                    <span className="label-text text-sm font-semibold text-base-content/90">Barrio o zona</span>
                   </label>
                   <input
                     type="text"
                     placeholder="Ej: Nueva Córdoba"
-                    className="input input-bordered input-sm w-full"
+                    className="input input-bordered input-sm w-full focus-within:outline-brand-teal transition-all"
                     value={filters.neighborhood ?? ''}
-                    onChange={(e) => setFilters({ ...filters, neighborhood: e.target.value || undefined })}
+                    onChange={(e) => updateFilter('neighborhood', e.target.value || undefined)}
                   />
                 </div>
 
                 <div className="form-control">
                   <label className="label py-1">
-                    <span className="label-text text-sm font-medium">Generación del anfitrión</span>
+                    <span className="label-text text-sm font-semibold text-base-content/90">Anfitrión</span>
                   </label>
                   <select
-                    className="select select-bordered select-sm w-full"
+                    className="select select-bordered select-sm w-full focus-within:outline-brand-teal transition-all"
                     value={filters.generation ?? ''}
-                    onChange={(e) =>
-                      setFilters({ ...filters, generation: (e.target.value || undefined) as Generation | undefined })
-                    }
+                    onChange={(e) => updateFilter('generation', (e.target.value || undefined) as Generation | undefined)}
                   >
-                    <option value="">Todas</option>
+                    <option value="">Cualquier generación</option>
                     {Object.entries(GENERATION_LABELS).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
+                      <option key={value} value={value}>{label}</option>
                     ))}
                   </select>
                 </div>
 
                 <div className="form-control">
                   <label className="label py-1">
-                    <span className="label-text text-sm font-medium">Propósito</span>
+                    <span className="label-text text-sm font-semibold text-base-content/90">Propósito</span>
                   </label>
                   <select
-                    className="select select-bordered select-sm w-full"
+                    className="select select-bordered select-sm w-full focus-within:outline-brand-teal transition-all"
                     value={filters.purpose ?? ''}
-                    onChange={(e) => setFilters({ ...filters, purpose: (e.target.value || undefined) as Purpose | undefined })}
+                    onChange={(e) => updateFilter('purpose', (e.target.value || undefined) as Purpose | undefined)}
                   >
-                    <option value="">Todos</option>
+                    <option value="">Cualquiera</option>
                     {Object.entries(PURPOSE_LABELS).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
+                      <option key={value} value={value}>{label}</option>
                     ))}
                   </select>
                 </div>
 
                 <div className="form-control">
                   <label className="label py-1">
-                    <span className="label-text text-sm font-medium">Duración</span>
+                    <span className="label-text text-sm font-semibold text-base-content/90">Duración</span>
                   </label>
                   <select
-                    className="select select-bordered select-sm w-full"
+                    className="select select-bordered select-sm w-full focus-within:outline-brand-teal transition-all"
                     value={filters.duration ?? ''}
-                    onChange={(e) =>
-                      setFilters({ ...filters, duration: (e.target.value || undefined) as Duration | undefined })
-                    }
+                    onChange={(e) => updateFilter('duration', (e.target.value || undefined) as Duration | undefined)}
                   >
                     <option value="">Todas</option>
                     {Object.entries(DURATION_LABELS).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
+                      <option key={value} value={value}>{label}</option>
                     ))}
                   </select>
                 </div>
 
                 <div className="form-control">
                   <label className="label py-1">
-                    <span className="label-text text-sm font-medium">Verificación</span>
+                    <span className="label-text text-sm font-semibold text-base-content/90">Seguridad</span>
                   </label>
-                  <label className="label cursor-pointer justify-start gap-2 py-1.5">
+                  <label className="label cursor-pointer justify-start gap-2 py-1.5 hover:bg-base-200/50 rounded-lg px-2 transition-colors">
                     <input
                       type="checkbox"
-                      className="checkbox checkbox-sm checkbox-secondary"
+                      className="checkbox checkbox-sm [--chkbg:theme(colors.brand-teal)] [--chkfg:white] border-base-300"
                       checked={filters.verifiedOnly ?? false}
-                      onChange={(e) => setFilters({ ...filters, verifiedOnly: e.target.checked || undefined })}
+                      onChange={(e) => updateFilter('verifiedOnly', e.target.checked || undefined)}
                     />
-                    <span className="label-text text-sm">Solo verificados</span>
+                    <span className="label-text text-sm font-medium">Solo verificados</span>
                   </label>
                 </div>
               </div>
 
               {activeFilterCount > 0 && (
-                <div className="mt-4">
+                <div className="mt-6 flex justify-end border-t border-base-200 pt-4">
                   <button
-                    onClick={() => setFilters(EMPTY_FILTERS)}
-                    className="btn btn-ghost btn-xs gap-1 text-base-content/60 hover:text-error"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      clearFilters();
+                    }}
+                    className="btn btn-ghost btn-sm gap-2 text-base-content/60 hover:text-error hover:bg-error/10 transition-colors"
                   >
-                    <X className="size-3.5" />
+                    <X className="size-4" />
                     Limpiar filtros
                   </button>
                 </div>
@@ -285,18 +254,26 @@ export const ExploreSpacesPage = () => {
             </div>
           </div>
 
-          {/* Resultados */}
-          <p className="text-sm text-base-content/60 mb-4 font-medium">
+          <p className="text-sm text-base-content/60 mb-6 font-semibold uppercase tracking-wider">
             {filteredSpaces.length} {filteredSpaces.length === 1 ? 'espacio encontrado' : 'espacios encontrados'}
           </p>
 
           {filteredSpaces.length === 0 ? (
-            <div className="w-full py-20 flex flex-col items-center justify-center text-center gap-3 bg-base-100 border border-dashed border-base-300 rounded-2xl">
-              <p className="text-base-content/60 font-medium text-lg">
-                No encontramos espacios con esos filtros.
-              </p>
-              <button onClick={() => setFilters(EMPTY_FILTERS)} className="btn btn-sm btn-outline border-brand-teal text-brand-teal">
-                Limpiar filtros
+            <div className="w-full py-20 flex flex-col items-center justify-center text-center gap-4 bg-base-100 border border-dashed border-base-300 rounded-3xl shadow-sm">
+              <div className="p-4 bg-base-200 rounded-full">
+                <SlidersHorizontal className="size-8 text-base-content/40" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-base-content">No hay resultados</h3>
+                <p className="text-base-content/60 font-medium mt-1 max-w-sm">
+                  Intenta ajustar o eliminar algunos filtros para encontrar más espacios de convivencia.
+                </p>
+              </div>
+              <button 
+                onClick={clearFilters} 
+                className="btn btn-sm mt-2 bg-brand-teal/10 text-brand-teal border-none hover:bg-brand-teal/20"
+              >
+                Limpiar búsqueda
               </button>
             </div>
           ) : (
@@ -304,55 +281,67 @@ export const ExploreSpacesPage = () => {
               {filteredSpaces.map((space) => (
                 <div
                   key={space.id}
-                  className="card bg-base-100 shadow-xl border border-base-200 overflow-hidden hover:shadow-2xl transition-all duration-300 group"
+                  className="card bg-base-100 shadow-sm border border-base-200 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col"
                 >
-                  <figure className="relative h-60 overflow-hidden">
+                  <figure className="relative h-56 overflow-hidden">
                     <img
                       src={space.imageUrl}
-                      alt={space.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      alt={`Foto de ${space.title}`}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                      loading="lazy"
                     />
-                    <div className="absolute top-4 right-4 badge badge-accent font-bold p-3 shadow-md">{space.price}</div>
-                  </figure>
-
-                  <div className="card-body p-6">
-                    <h3 className="card-title text-lg font-bold text-base-content leading-tight">{space.title}</h3>
-
-                    <div className="flex items-center gap-2 text-base-content/70 text-sm mt-2">
-                      <MapPin className="size-4 text-brand-teal" />
-                      <span>{space.location}</span>
+                    <div className="absolute top-4 right-4 badge bg-brand-navy text-white border-none font-bold py-3 shadow-lg backdrop-blur-sm bg-opacity-90">
+                      {formatPrice(space.price, space.currency)}
                     </div>
-
-                    <div className="flex items-center gap-2 text-base-content/70 text-sm mt-1">
-                      <User className="size-4 text-brand-navy dark:text-base-content" />
-                      <span>Anfitrión: {space.hostType}</span>
-                      {space.verified && (
-                        <div className="tooltip tooltip-top" data-tip="Identidad Verificada">
-                          <CheckCircle2 className="size-4 text-success" />
-                        </div>
-                      )}
+                  </figure>
+                  
+                  <div className="card-body p-6 flex-grow flex flex-col">
+                    <h3 className="card-title text-lg font-bold text-base-content leading-tight line-clamp-2">
+                      {space.title}
+                    </h3>
+                    
+                    <div className="space-y-2 mt-2">
+                      <div className="flex items-start gap-2 text-base-content/70 text-sm">
+                        <MapPin className="size-4 text-brand-teal shrink-0 mt-0.5" />
+                        <span className="line-clamp-1">{space.location}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-base-content/70 text-sm">
+                        <User className="size-4 text-brand-navy dark:text-base-content shrink-0" />
+                        <span>Anfitrión: <span className="font-medium text-base-content">{space.hostType}</span></span>
+                        {space.verified && (
+                          <div className="tooltip tooltip-top before:text-xs" data-tip="Identidad Verificada">
+                            <CheckCircle2 className="size-4 text-success" />
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex flex-wrap gap-2 mt-4">
-                      <span className="badge badge-outline badge-sm border-brand-teal text-brand-teal">
+                      <span className="badge badge-outline badge-sm border-brand-teal/50 text-brand-teal bg-brand-teal/5 font-medium">
                         {GENERATION_LABELS[space.hostGeneration]}
                       </span>
-                      <span className="badge badge-outline badge-sm border-brand-orange text-brand-orange">
+                      <span className="badge badge-outline badge-sm border-brand-orange/50 text-brand-orange bg-brand-orange/5 font-medium">
                         {PURPOSE_LABELS[space.purpose]}
                       </span>
-                      <span className="badge badge-ghost badge-sm">{DURATION_LABELS[space.duration]}</span>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {space.amenities.map((amenity) => (
-                        <span key={amenity} className="badge badge-ghost badge-sm">
+                    <div className="flex flex-wrap gap-2 mt-3 mb-4">
+                      {space.amenities.slice(0, 3).map((amenity) => (
+                        <span key={amenity} className="badge badge-ghost badge-sm text-xs text-base-content/70">
                           {amenity}
                         </span>
                       ))}
+                      {space.amenities.length > 3 && (
+                        <span className="badge badge-ghost badge-sm text-xs text-base-content/70">
+                          +{space.amenities.length - 3}
+                        </span>
+                      )}
                     </div>
 
-                    <div className="card-actions justify-end mt-6 border-t border-base-200 pt-4">
-                      <button className="btn bg-brand-navy hover:bg-brand-navy/90 text-white w-full">Ver Detalles</button>
+                    <div className="card-actions justify-end mt-auto border-t border-base-200 pt-5">
+                      <button className="btn bg-brand-navy hover:bg-brand-navy/90 text-white w-full transition-colors">
+                        Ver Detalles
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -361,7 +350,7 @@ export const ExploreSpacesPage = () => {
           )}
         </div>
       </main>
-
+      
       <Footer />
     </div>
   );

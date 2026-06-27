@@ -7,7 +7,8 @@ export interface Space {
   location: string;
   /** Nombre corto y canónico del barrio/zona, usado para filtrar (distinto de `location`, que es descriptivo). */
   neighborhood: string;
-  price: string;
+  price: number;
+  currency: 'ARS'|'USD';
   hostType: string;
   hostGeneration: Generation;
   purpose: Purpose;

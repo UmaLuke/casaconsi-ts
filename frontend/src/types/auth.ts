@@ -1,4 +1,4 @@
-// src/types/auth.ts
+import type { Generation } from "./filters";
 
 export type UserRole = 'host' | 'student';
 
@@ -7,9 +7,8 @@ export interface User {
   email: string;
   role: UserRole;
   avatar?: string;
-  /** Título de display opcional (ej. "Fundadora") para cuentas especiales.
-   *  No es un rol de negocio: no debe usarse para lógica de permisos. */
   title?: string;
+  generation?: Generation;
 }
 
 export interface AuthContextValue {
