@@ -11,7 +11,7 @@ const LandingPageLayout = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-grow">
+      <main className="grow">
         <LandingPage />
       </main>
       <Footer />

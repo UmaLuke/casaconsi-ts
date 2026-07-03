@@ -32,11 +32,11 @@ export const Header = () => {
   if (location.pathname === '/') {
     // 1. Landing Page: Transparente arriba, Azul oscuro al scrollear
     headerBgClass = isScrolled 
-      ? 'bg-brand-navy/95 backdrop-blur-md shadow-sm' 
+      ? 'bg-brand-teal backdrop-blur-md shadow-sm' 
       : 'bg-transparent';
   } else if (location.pathname === '/explorar') {
     // 2. Explore Spaces: Tu color "celestón" (usando el teal de la marca con efecto glassmorphism)
-    headerBgClass = 'bg-[#114b59]/90 backdrop-blur-md shadow-sm border-b border-brand-teal/20'; 
+    headerBgClass = 'bg-brand-teal backdrop-blur-md shadow-sm border-b border-brand-teal/20'; 
   } else {
     // 3. Resto de páginas (Dashboard, etc.): Azul marino sólido por defecto
     headerBgClass = 'bg-brand-navy shadow-sm';
@@ -52,7 +52,7 @@ export const Header = () => {
             <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden text-white hover:bg-white/10" aria-label="Abrir menú">
               <Menu className="h-5 w-5" />
             </div>
-            <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow-lg bg-base-100 rounded-box w-52 text-base-content border border-base-200">
+            <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-1 p-2 shadow-lg bg-base-100 rounded-box w-52 text-base-content border border-base-200">
               {!user && (
                 <>
                   <li><a href="#como-funciona">¿Cómo funciona?</a></li>
@@ -99,7 +99,7 @@ export const Header = () => {
                   <img src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`} alt={`Avatar de ${user.name}`} />
                 </div>
               </div>
-              <ul tabIndex={0} className="mt-3 z-[1] p-2 shadow-lg menu menu-sm dropdown-content bg-base-100 rounded-box w-52 text-base-content border border-base-200">
+              <ul tabIndex={0} className="mt-3 z-1 p-2 shadow-lg menu menu-sm dropdown-content bg-base-100 rounded-box w-52 text-base-content border border-base-200">
                 <li className="menu-title px-4 py-2 border-b border-base-200 mb-1">
                   <span className="font-bold text-base-content text-sm block truncate">{user.name}</span>
                   <span className="text-xs font-normal text-base-content/60 capitalize block">{user.title ?? user.role}</span>

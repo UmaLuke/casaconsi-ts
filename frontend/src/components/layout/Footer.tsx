@@ -6,7 +6,7 @@ export const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-brand-teal/30 text-base-content border-t border-base-300">
+    <footer className="bg-brand-teal text-base-content border-t border-base-300">
       <div className="container mx-auto px-4 md:px-6">
         
         {/* Contenido Principal del Footer */}

@@ -1,93 +1,114 @@
 // src/components/features/landing/FeaturedVideos.tsx
-import { PlayCircle } from 'lucide-react';
+import { useRef } from 'react';
+import { PlayCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { FeaturedVideo } from '../../../types/video';
 
 export const FeaturedVideos = () => {
-  // Datos de tus videos (Ahora puedes pegar URLs completas o solo los IDs)
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
   const videos: FeaturedVideo[] = [
-    {
-      id: "v1",
-      youtubeUrl: "https://www.youtube.com/watch?v=RRNmV8gKn2k&list=RDiuLR8iPwWB4&index=3", // Puedes usar URL completa
-      title: "¿Cómo nació Casa Con Sí?",
-      description: "Conoce cómo nuestra plataforma conecta generaciones mediante acuerdos claros y beneficiosos."
-    },
-    {
-      id: "v2",
-      youtubeUrl: "https://www.youtube.com/watch?v=bXaL5regHcc&list=RDiuLR8iPwWB4&index=4", // O puedes usar el formato corto de "Compartir"
-      title: "Un poco de solidaridad en el corazón",
-      description: "Aprende a publicar tu espacio, establecer reglas de convivencia y maximizar tus ingresos."
-    },
-    {
-      id: "v3",
-      youtubeUrl: "https://www.youtube.com/watch?v=WPqBypuJRWY&list=RDWPqBypuJRWY&start_radio=1", // O simplemente el ID puro, ¡todo funcionará!
-      title: "Probando como se ven",
-      description: "Paso a paso para buscar locación, verificar anfitriones y firmar tu acuerdo de convivencia."
-    }
+    { id: "v1", youtubeUrl: "https://www.youtube.com/watch?v=RRNmV8gKn2k", title: "¿Cómo nació Casa Con Sí?", description: "Conecta generaciones mediante acuerdos claros." },
+    { id: "v2", youtubeUrl: "https://www.youtube.com/watch?v=bXaL5regHcc", title: "Un poco de solidaridad", description: "Publica tu espacio y maximiza ingresos." },
+    { id: "v3", youtubeUrl: "https://www.youtube.com/watch?v=WPqBypuJRWY", title: "Probando como se ven", description: "Paso a paso para tu acuerdo de convivencia." }
   ];
 
-  // Función utilitaria para extraer el ID de cualquier formato de URL de YouTube
   const getEmbedUrl = (url: string): string => {
-    let videoId = url;
-    // Expresión regular para encontrar el ID en formatos youtube.com o youtu.be
     const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
-    
-    if (match && match[1]) {
-      videoId = match[1]; // Extrae el ID si es una URL completa
+    const videoId = match ? match[1] : url;
+    return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`;
+  };
+
+  // El scroll ahora se mueve exactamente el ancho de un video (el 100% del contenedor)
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const scrollAmount = container.clientWidth; 
+      
+      container.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
     }
-    
-    return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`; 
-    // Notas de pulido: rel=0 evita videos recomendados de otros canales al final. modestbranding=1 limpia el logo.
   };
 
   return (
-    <section id="videos" className="py-20 bg-base-100">
-      <div className="container mx-auto px-4 md:px-6">
+    <section id="videos" className="py-20 bg-base-100 overflow-hidden">
+      <div className="container mx-auto px-4 md:px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
         
-        {/* Encabezado de Sección */}
-        <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-          <div className="flex justify-center mb-4">
-            <div className="p-3 bg-brand-orange/10 rounded-full">
-              <PlayCircle className="size-10 text-brand-orange" />
-            </div>
+        {/* Lado Izquierdo: Encabezado */}
+        <div className="lg:col-span-3 space-y-4">
+          <div className="p-3 bg-brand-orange/10 rounded-full w-fit">
+            <PlayCircle className="size-10 text-brand-orange" />
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-base-content">
+          <h2 className="text-3xl md:text-4xl font-bold text-base-content leading-tight">
             Conoce Casa con SI en Acción
           </h2>
           <p className="text-lg text-base-content/70">
-            Explora nuestros videos explicativos para entender cómo facilitamos las conexiones intergeneracionales.
+            Explora nuestros videos explicativos sobre cómo facilitamos las conexiones intergeneracionales.
           </p>
         </div>
 
-        {/* Grilla de Videos */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {videos.map((video) => (
-            <div key={video.id} className="card bg-base-200 shadow-xl border border-base-300 overflow-hidden hover:shadow-2xl transition-all duration-300">
-              
-              <figure className="w-full aspect-video bg-black relative">
-                <iframe
-                  className="absolute top-0 left-0 w-full h-full"
-                  src={getEmbedUrl(video.youtubeUrl)}
-                  title={video.title}
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  loading="lazy"
-                ></iframe>
-              </figure>
-              
-              <div className="card-body p-6">
-                <h3 className="card-title text-lg font-bold text-base-content leading-tight">
-                  {video.title}
-                </h3>
-                {/* Opcional: Mantener la descripción o dejar solo el título para un diseño más limpio */}
-                <p className="text-base-content/70 text-sm mt-2">
-                  {video.description}
-                </p>
-              </div>
+        {/* Lado Derecho: Carrusel Principal */}
+        <div className="lg:col-span-9 relative w-full">
+          
+          {/* Contenedor Principal del Carrusel (Bordes redondeados y sombra) */}
+          <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl border border-base-300 bg-base-200">
+            
+            {/* Pista de Scroll */}
+            <div 
+              ref={scrollContainerRef}
+              className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide scroll-smooth w-full"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {videos.map((video) => (
+                <div 
+                  key={video.id} 
+                  // w-full asegura que cada video ocupe el 100% del espacio
+                  className="w-full flex-none snap-center relative"
+                >
+                  <figure className="w-full aspect-video bg-black relative">
+                    <iframe
+                      className="absolute top-0 left-0 w-full h-full"
+                      src={getEmbedUrl(video.youtubeUrl)}
+                      title={video.title}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      loading="lazy"
+                    ></iframe>
+                  </figure>
+                  {/* Título en la parte inferior */}
+                  <div className="p-5">
+                    <h3 className="text-xl font-bold text-base-content">
+                      {video.title}
+                    </h3>
+                    <p className="text-sm text-base-content/70 mt-1">{video.description}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
+            {/* Botones Flotantes Superpuestos */}
+            {/* pointer-events-none en el wrapper para no bloquear clicks, pero pointer-events-auto en los botones */}
+            {/* top-[40%] centra los botones sobre el área del video (ignorando el texto de abajo) */}
+            <div className="absolute top-[40%] left-0 right-0 -translate-y-1/2 flex justify-between px-4 pointer-events-none">
+              <button 
+                onClick={() => scroll('left')}
+                className="btn btn-circle btn-neutral pointer-events-auto opacity-70 hover:opacity-100 transition-opacity"
+                aria-label="Ver video anterior"
+              >
+                <ChevronLeft className="size-6 text-neutral-content" />
+              </button>
+              <button 
+                onClick={() => scroll('right')}
+                className="btn btn-circle btn-neutral pointer-events-auto opacity-70 hover:opacity-100 transition-opacity"
+                aria-label="Ver video siguiente"
+              >
+                <ChevronRight className="size-6 text-neutral-content" />
+              </button>
+            </div>
+
+          </div>
+        </div>
       </div>
     </section>
   );
