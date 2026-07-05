@@ -42,49 +42,45 @@ export const HowItWorks = () => {
   ];
 
   return (
-    /* 1. Quitamos bg-base-200 y lo hacemos relative con overflow-hidden para las capas */
     <section id="como-funciona" className="relative py-10 overflow-hidden">
       
       {/* --- CAPA 1: LA IMAGEN DE FONDO --- */}
       <div 
         className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat"
         style={{ 
-          // Reemplaza esto con la ruta de tu nueva imagen
           backgroundImage: "url('/fondo2.png')" 
         }}
       />
 
       {/* --- CAPA 2: EL FILTRO GLOBAL (Overlay) --- */}
-      {/* Usamos un fondo al 80% con un ligero desenfoque para que las tarjetas no pierdan contraste */}
-      <div className="absolute inset-0 bg-base-200/40 backdrop-blur-[2px] pointer-events-none" />
+      {/* Fijo en brand-navy (independiente del tema) para conservar el look oscuro original */}
+      <div className="absolute inset-0 bg-brand-navy/50 backdrop-blur-[2px] pointer-events-none" />
 
       {/* --- CAPA 3: TU CONTENIDO --- */}
-      {/* Añadimos relative z-10 para que todo flote sobre la imagen y el filtro */}
       <div className="container relative z-10 mx-auto px-4 md:px-6">
         
         {/* Encabezado de Sección */}
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-base-content drop-shadow-sm">
+          <h2 className="text-3xl md:text-4xl font-bold text-white">
             ¿Cómo Funciona?
           </h2>
-          <p className="text-lg text-base-content/90 font-medium drop-shadow-sm">
+          <p className="text-lg text-white/90 font-medium">
             Descubre nuestro proceso paso a paso para conectar generaciones.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {steps.map((step) => (
-            /* Hacemos las tarjetas ligeramente translúcidas (bg-base-100/90) y agregamos hover animado */
             <div 
               key={step.id} 
-              className="card bg-base-80/10 backdrop-blur-md shadow-xl border border-base-content/10 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+              className="card bg-brand-navy/20 backdrop-blur-md shadow-xl border border-white/10 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
             >
               <div className="card-body items-center text-center p-8">
                 {step.icon}
-                <h3 className="card-title text-xl font-bold text-base-content mb-2">
+                <h3 className="card-title text-xl font-bold text-white mb-2">
                   {step.title}
                 </h3>
-                <p className="text-base-content/80 leading-relaxed font-medium">
+                <p className="text-white/80 leading-relaxed font-medium">
                   {step.description}
                 </p>
               </div>

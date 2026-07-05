@@ -21,45 +21,42 @@ export const Testimonials = () => {
   ];
 
   return (
-    // Quitamos bg-base-200 y preparamos el contenedor para capas flotantes
     <section id="testimonios" className="relative py-20 overflow-hidden">
       
       {/* --- CAPA 1: LA IMAGEN DE FONDO --- */}
       <div 
         className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat"
         style={{ 
-          // Recuerda cambiar esta URL por tu propia imagen de fondo
           backgroundImage: "url('/fondocomida.png')" 
         }}
       />
 
       {/* --- CAPA 2: EL FILTRO SUTIL --- */}
-      <div className="absolute inset-0 bg-base-200/60 backdrop-blur-[2px] pointer-events-none" />
+      {/* Fijo en brand-navy (independiente del tema) para conservar el look oscuro original */}
+      <div className="absolute inset-0 bg-brand-navy/60 backdrop-blur-[2px] pointer-events-none" />
 
       {/* --- CAPA 3: TU CONTENIDO --- */}
       <div className="container relative z-10 mx-auto px-4 md:px-6">
         
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-base-content drop-shadow-sm">
+          <h2 className="text-3xl md:text-4xl font-bold text-white">
             Historias de Convivencia
           </h2>
-          <p className="text-lg text-base-content/90 font-medium drop-shadow-sm">
+          <p className="text-lg text-white/90 font-medium">
             Descubre cómo nuestra plataforma está transformando la manera en que diferentes generaciones comparten y coexisten.
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {reviews.map((review) => (
-            /* Tarjeta Glassmorphism */
             <div 
               key={review.id} 
-              className="card bg-base-100/50 backdrop-blur-md shadow-xl border border-base-content/10 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+              className="card bg-brand-navy/40 backdrop-blur-md shadow-xl border border-white/10 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
             >
               <div className="card-body relative">
-                {/* Mantenemos el ícono Quote de lucide-react */}
                 <Quote className="absolute top-6 right-6 size-10 text-brand-teal/20" />
                 
-                <p className="text-base-content/90 font-medium text-lg italic mb-6 relative z-10">
+                <p className="text-white/90 font-medium text-lg italic mb-6 relative z-10">
                   "{review.text}"
                 </p>
                 
@@ -70,7 +67,7 @@ export const Testimonials = () => {
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-bold text-base-content">{review.author}</h4>
+                    <h4 className="font-bold text-white">{review.author}</h4>
                     <p className="text-sm text-brand-teal font-bold">{review.role}</p>
                   </div>
                 </div>

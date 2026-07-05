@@ -1,13 +1,19 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<!-- 1. Añadimos data-theme="black" directamente al tag html -->
+<html lang="es" data-theme="black">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/logo-blanco.jpeg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Casa con Sí</title>
+    <title>Casa con Si</title>
+    <!-- 2. Forzamos el esquema oscuro nativo del navegador -->
+    <meta name="color-scheme" content="dark" />
   </head>
-  <body>
+  <!-- 3. VITAL: Clases base de DaisyUI en el body -->
+  <body class="min-h-screen bg-base-100 text-base-content antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
+
+  

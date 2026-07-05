@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom'; // <-- Añadimos useLocation
 import { Menu } from 'lucide-react';
 import { BrandLogo } from '../common/BrandLogo';
-import { ThemeToggle } from '../common/ThemeToggle';
 import { LoginModal } from '../features/auth/LoginModal';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -90,8 +89,6 @@ export const Header = () => {
 
         {/* --- CONTROLES Y AUTENTICACIÓN --- */}
         <div className="navbar-end gap-2 sm:gap-4 items-center">
-          <ThemeToggle />
-          
           {user ? (
             <div className="dropdown dropdown-end">
               <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar transition-transform hover:scale-105" aria-label="Menú de usuario">
