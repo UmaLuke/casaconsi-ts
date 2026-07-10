@@ -4,31 +4,32 @@ import { Link, useNavigate } from 'react-router-dom';
 import { RegisterForm, type RegisterFormData } from '../../components/features/auth/RegisterForm';
 import { BrandLogo } from "../../components/common/BrandLogo";
 import { ArrowLeft } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
 
 export const RegisterPage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const navigate = useNavigate(); // Para redirigir al usuario después de registrarse
+  const navigate = useNavigate();
+  const { login } = useAuth(); // agregar esta línea
 
   const handleRegister = async (userData: RegisterFormData) => {
     setIsLoading(true);
     try {
       // TODO: Conectar con tu Backend para crear el usuario
       console.log('Registrando nuevo usuario:', userData);
-      
-      // Simulamos latencia de red
+
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      
-      // Simulamos que el registro fue exitoso y lo mandamos al inicio
-      navigate('/');
-      
-      // Opcional: Aquí podrías abrir el modal de login automáticamente 
-      // document.getElementById('login_modal').showModal();
+
+      // Dejamos a la persona autenticada y la mandamos a completar
+      // el cuestionario obligatorio de su rol.
+      login({ name: userData.name, email: userData.email, role: userData.role });
+      navigate(userData.role === 'host' ? '/cuestionario/ofrecer' : '/cuestionario/buscar');
     } catch (error) {
       console.error('Error al registrar', error);
     } finally {
       setIsLoading(false);
     }
   };
+  // ... el resto del archivo queda igual
 
   return (
     <div className="min-h-screen flex bg-base-100">
@@ -41,7 +42,7 @@ export const RegisterPage = () => {
           style={{ backgroundImage: "url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2000&auto=format&fit=crop')" }}
         />
         {/* Overlay con gradiente corporativo para garantizar legibilidad */}
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-navy/95 via-brand-navy/70 to-brand-navy/40" />
+        <div className="absolute inset-0 bg-linear-to-t from-brand-navy/95 via-brand-navy/70 to-brand-navy/40" />
         
         <div className="relative z-10 w-full flex flex-col justify-between p-12 lg:p-20 text-white">
           <Link to="/" className="inline-block transition-transform hover:scale-105 origin-left">

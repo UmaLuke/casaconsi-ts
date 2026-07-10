@@ -58,10 +58,10 @@ export const LoginModal = () => {
       <div className="modal-box p-0 overflow-hidden bg-base-100 shadow-2xl">
         
         {/* Header del Modal */}
-        <div className="bg-brand-teal/10 p-6 flex justify-between items-center border-b border-base-200">
+        <div className="bg-brand-teal  p-6 flex justify-between items-center border-b border-base-200">
           <div>
-            <h3 className="font-extrabold text-2xl text-base-content tracking-tight">¡Hola de nuevo!</h3>
-            <p className="text-sm text-base-content/70 mt-1 font-medium">Ingresa a tu cuenta para continuar.</p>
+            <h3 className="font-extrabold text-2xl text-base-white tracking-tight">¡Hola de nuevo!</h3>
+            <p className="text-sm text-base-white/70 mt-1 font-medium">Ingresa a tu cuenta para continuar.</p>
           </div>
           <form method="dialog">
             <button 
@@ -79,12 +79,12 @@ export const LoginModal = () => {
         </div>
 
         {/* Footer de Registro */}
-        <div className="bg-base-200/50 p-5 text-center border-t border-base-200">
-          <p className="text-sm text-base-content/70 font-medium">
+        <div className="bg-brand-teal p-5 text-center border-t border-brand-teal/10">
+          <p className="text-sm text-base-white/70 font-medium">
             ¿Aún no tienes una cuenta?{' '}
             <Link 
               to="/register" 
-              className="text-brand-orange hover:text-brand-orange/80 hover:underline font-bold transition-colors"
+              className="text-brand-orange hover:text-brand-orange/70 hover:underline font-bold transition-colors"
               onClick={handleCloseModal}
             >
               Regístrate aquí

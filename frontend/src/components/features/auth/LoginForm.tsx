@@ -36,7 +36,7 @@ export const LoginForm = ({ onSubmit, isLoading = false }: LoginFormProps) => {
             <Mail className="h-5 w-5 text-base-content/40" />
             <input 
               type="email" 
-              className="grow" 
+              className="grow text-base-content" 
               placeholder="tu@correo.com" 
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -59,7 +59,7 @@ export const LoginForm = ({ onSubmit, isLoading = false }: LoginFormProps) => {
             <Lock className="h-5 w-5 text-base-content/40" />
             <input 
               type="password" 
-              className="grow" 
+              className="grow text-base-content" 
               placeholder="••••••••" 
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}

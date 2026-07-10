@@ -11,7 +11,7 @@ import type { User } from '../types/auth';
 export const DashboardPage = () => {
   const { user, logout } = useAuth();
 
-  const currentUser: User = user || { name: 'Invitado', email: '', role: 'student', avatar: '' };
+  const currentUser: User = user || { name: 'Invitado', email: 'admin@prueba.com', role: 'student', avatar: '' };
 
   const isHost = currentUser.role === 'host';
 
