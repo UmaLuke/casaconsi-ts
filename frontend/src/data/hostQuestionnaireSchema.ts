@@ -40,9 +40,9 @@ export const HOST_QUESTIONNAIRE_SCHEMA: QuestionnaireSectionSchema[] = [
       },
       { id: 'contactEmail', label: 'Email de contacto', type: 'text', placeholder: 'tu@correo.com', required: true },
       { id: 'contactPhone', label: 'Teléfono de contacto', type: 'text', placeholder: '351 123 4567', required: true },
-      { id: 'familyReferenceName', label: 'Contacto de familiar de referencia: nombre', type: 'text' },
-      { id: 'familyReferenceRelationship', label: 'Contacto de familiar de referencia: vínculo', type: 'text' },
-      { id: 'familyReferencePhone', label: 'Contacto de familiar de referencia: teléfono', type: 'text' },
+      { id: 'familyReferenceName', label: 'Contacto de familiar de referencia: nombre', type: 'text', required: true },
+      { id: 'familyReferenceRelationship', label: 'Contacto de familiar de referencia: vínculo', type: 'text', required: true },
+      { id: 'familyReferencePhone', label: 'Contacto de familiar de referencia: teléfono', type: 'text', required: true },
     ],
   },
   {
@@ -62,7 +62,7 @@ export const HOST_QUESTIONNAIRE_SCHEMA: QuestionnaireSectionSchema[] = [
       },
       { id: 'professionOrEducation', label: 'Actividad profesional desarrollada / nivel de estudios', type: 'text' },
       { id: 'livesAlone', label: '¿Vivís solo/a actualmente?', type: 'select', options: YES_NO_OPTIONS, required: true },
-      { id: 'otherResidents', label: '¿Quiénes más residen en el hogar? (relación, edades)', type: 'textarea', helperText: "Completar si respondiste 'No' a vivir solo/a" },
+      { id: 'otherResidents', label: '¿Quiénes más residen en el hogar? (relación, edades)', type: 'textarea', dependsOn: { fieldId: 'livesAlone', equals: 'no' } },
     ],
   },
   {
@@ -109,7 +109,7 @@ export const HOST_QUESTIONNAIRE_SCHEMA: QuestionnaireSectionSchema[] = [
     badge: 'Obligatorio',
     fields: [
       { id: 'expectsMonthlyContribution', label: '¿Esperás un aporte económico mensual?', type: 'select', options: YES_NO_OPTIONS, required: true },
-      { id: 'expectedAmountRangeArs', label: 'Monto esperado (rango en ARS)', type: 'text', placeholder: 'Ej: 50.000 - 80.000' },
+      { id: 'expectedAmountRangeArs', label: 'Monto esperado (rango en ARS)', type: 'text', placeholder: 'Ej: 50.000 - 80.000', dependsOn: { fieldId: 'expectsMonthlyContribution', equals: 'si' } },
       {
         id: 'otherExchanges', label: '¿Qué otros intercambios te interesaría recibir?', type: 'multiselect',
         options: [
@@ -122,7 +122,7 @@ export const HOST_QUESTIONNAIRE_SCHEMA: QuestionnaireSectionSchema[] = [
           { value: 'otro', label: 'Otro' },
         ],
       },
-      { id: 'otherExchangeDetail', label: 'Especificar otro intercambio', type: 'text' },
+      { id: 'otherExchangeDetail', label: 'Especificar otro intercambio', type: 'text', dependsOn: { fieldId: 'otherExchanges', includes: 'otro' } },
     ],
   },
   {
@@ -130,12 +130,12 @@ export const HOST_QUESTIONNAIRE_SCHEMA: QuestionnaireSectionSchema[] = [
     title: 'Salud y capacidad funcional',
     badge: 'Obligatorio',
     fields: [
-      { id: 'currentHealthStatus', label: '¿Cómo describís tu estado de salud actual?', type: 'scale', min: 1, max: 5 },
+      { id: 'currentHealthStatus', label: '¿Cómo describís tu estado de salud actual?', type: 'scale', min: 1, max: 10 },
       { id: 'relevantHealthCondition', label: '¿Tenés alguna condición de salud que consideres importante mencionar?', type: 'textarea' },
       { id: 'dailyActivitySupportDetail', label: '¿Necesitás apoyo para alguna actividad cotidiana? (movilidad, higiene, compras)', type: 'textarea' },
       { id: 'takesScheduledMedication', label: '¿Tomás medicación continua que requiera horarios específicos?', type: 'select', options: YES_NO_OPTIONS },
       { id: 'hasCurrentHelp', label: '¿Contás con algún tipo de ayuda actualmente (familiar, cuidador)?', type: 'select', options: YES_NO_OPTIONS },
-      { id: 'currentHelpDetail', label: 'Detalle de la ayuda actual', type: 'text', helperText: "Completar si respondiste 'Sí'" },
+      { id: 'currentHelpDetail', label: 'Detalle de la ayuda actual', type: 'text', dependsOn: { fieldId: 'hasCurrentHelp', equals: 'si' } },
     ],
   },
   {
@@ -148,7 +148,7 @@ export const HOST_QUESTIONNAIRE_SCHEMA: QuestionnaireSectionSchema[] = [
         options: [{ value: 'si', label: 'Sí' }, { value: 'no', label: 'No' }, { value: 'solo-exterior', label: 'Solo en el exterior' }],
       },
       { id: 'hasPets', label: '¿Tenés mascotas?', type: 'select', options: YES_NO_OPTIONS },
-      { id: 'petsDetail', label: '¿Cuáles?', type: 'text', helperText: "Completar si respondiste 'Sí' a mascotas" },
+      { id: 'petsDetail', label: '¿Cuáles?', type: 'text', dependsOn: { fieldId: 'hasPets', equals: 'si' } },
       { id: 'hasMinorChildrenAtHome', label: '¿Tenés hijos/as menores que viven en el hogar?', type: 'select', options: YES_NO_OPTIONS },
       { id: 'freeTimeActivities', label: '¿A qué actividades dedicás tu tiempo libre?', type: 'textarea' },
       { id: 'belongsToAssociation', label: '¿Pertenecés a alguna asociación o colectivo?', type: 'text' },
@@ -161,7 +161,7 @@ export const HOST_QUESTIONNAIRE_SCHEMA: QuestionnaireSectionSchema[] = [
           { value: 'indistinto', label: 'Indistinto' },
         ],
       },
-      { id: 'cleanlinessExpectation', label: 'Nivel de orden y limpieza que esperás en el hogar compartido', type: 'scale', min: 1, max: 5 },
+      { id: 'cleanlinessExpectation', label: 'Nivel de orden y limpieza que esperás en el hogar compartido', type: 'scale', min: 1, max: 10 },
     ],
   },
   {

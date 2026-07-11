@@ -29,10 +29,9 @@ export const RegisterPage = () => {
       setIsLoading(false);
     }
   };
-  // ... el resto del archivo queda igual
 
   return (
-    <div className="min-h-screen flex bg-base-100">
+    <div className="h-screen flex bg-base-100 overflow-hidden">
       
       {/* Panel Izquierdo: Visual & Branding (Oculto en móviles) */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-base-200 overflow-hidden">
@@ -43,12 +42,18 @@ export const RegisterPage = () => {
         />
         {/* Overlay con gradiente corporativo para garantizar legibilidad */}
         <div className="absolute inset-0 bg-linear-to-t from-brand-navy/95 via-brand-navy/70 to-brand-navy/40" />
-        
-        <div className="relative z-10 w-full flex flex-col justify-between p-12 lg:p-20 text-white">
-          <Link to="/" className="inline-block transition-transform hover:scale-105 origin-left">
-            <BrandLogo />
-          </Link>
-          
+
+        {/* Botón de Regreso: reemplaza al logo, fijo arriba a la izquierda */}
+        <Link 
+          to="/" 
+          className="absolute top-12 left-12 lg:top-20 lg:left-20 z-10 inline-flex items-center gap-2 text-white/90 hover:text-white font-semibold transition-colors"
+        >
+          <ArrowLeft className="size-5" />
+          Volver al inicio
+        </Link>
+
+        {/* Texto hero: centrado verticalmente */}
+        <div className="relative z-10 w-full h-full flex flex-col justify-end p-12 lg:p-20 text-white">
           <div className="space-y-6">
             <h1 className="text-4xl xl:text-5xl font-extrabold leading-tight">
               Comienza tu historia <br />
@@ -61,11 +66,11 @@ export const RegisterPage = () => {
         </div>
       </div>
 
-      {/* Panel Derecho: Formulario de Registro */}
-      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 sm:p-12 md:p-16 relative overflow-y-auto">
+      {/* Panel Derecho: Formulario de Registro (con su propio scroll interno) */}
+      <div className="w-full lg:w-1/2 flex flex-col items-center justify-up p-8 sm:p-12 md:p-16 relative overflow-y-auto">
         
-        {/* Botón de Regreso (Superior Izquierda) */}
-        <div className="absolute top-8 left-8">
+        {/* Botón de Regreso: solo mobile/tablet; en desktop vive en el panel izquierdo */}
+        <div className="lg:hidden absolute top-8 left-8">
           <Link to="/" className="btn btn-ghost btn-sm gap-2 text-base-content/70 hover:text-base-content">
             <ArrowLeft className="size-4" />
             <span className="hidden sm:inline">Volver al inicio</span>

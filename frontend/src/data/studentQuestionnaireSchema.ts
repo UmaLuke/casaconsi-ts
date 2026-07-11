@@ -42,9 +42,9 @@ export const STUDENT_QUESTIONNAIRE_SCHEMA: QuestionnaireSectionSchema[] = [
       { id: 'nationality', label: 'Nacionalidad', type: 'text', placeholder: 'Argentina' },
       { id: 'contactEmail', label: 'Email de contacto', type: 'text', placeholder: 'tu@correo.com', required: true },
       { id: 'contactPhone', label: 'Teléfono de contacto', type: 'text', placeholder: '351 123 4567', required: true },
-      { id: 'emergencyContactName', label: 'Contacto de emergencia: nombre', type: 'text' },
-      { id: 'emergencyContactRelationship', label: 'Contacto de emergencia: vínculo', type: 'text', placeholder: 'Madre, hermano, amigo/a...' },
-      { id: 'emergencyContactPhone', label: 'Contacto de emergencia: teléfono', type: 'text' },
+      { id: 'emergencyContactName', label: 'Contacto de emergencia: nombre', type: 'text', required: true },
+      { id: 'emergencyContactRelationship', label: 'Contacto de emergencia: vínculo', type: 'text', placeholder: 'Madre, hermano, amigo/a...', required: true },
+      { id: 'emergencyContactPhone', label: 'Contacto de emergencia: teléfono', type: 'text', required: true },
     ],
   },
   {
@@ -61,9 +61,9 @@ export const STUDENT_QUESTIONNAIRE_SCHEMA: QuestionnaireSectionSchema[] = [
           { value: 'otro', label: 'Otro' },
         ],
       },
-      { id: 'reasonOther', label: 'Especificar otro motivo', type: 'text', helperText: "Completar solo si elegiste 'Otro'" },
-      { id: 'studyDetails', label: 'Si estudiás: institución, carrera, año y horario estimado de cursado', type: 'textarea' },
-      { id: 'workDetails', label: 'Si trabajás: tipo de trabajo, horario y si continuará durante la estadía', type: 'textarea' },
+      { id: 'reasonOther', label: 'Especificar otro motivo', type: 'text', dependsOn: { fieldId: 'reason', equals: 'otro' } },
+      { id: 'studyDetails', label: 'Si estudiás: institución, carrera, año y horario estimado de cursado', type: 'textarea', dependsOn: { fieldId: 'reason', equals: 'estudios' } },
+      { id: 'workDetails', label: 'Si trabajás: tipo de trabajo, horario y si continuará durante la estadía', type: 'textarea', dependsOn: { fieldId: 'reason', equals: 'trabajo' } },
       {
         id: 'stayDuration', label: 'Tiempo estimado de estadía', type: 'select', required: true,
         options: [
@@ -86,8 +86,16 @@ export const STUDENT_QUESTIONNAIRE_SCHEMA: QuestionnaireSectionSchema[] = [
         helperText: 'Selección múltiple. La búsqueda por mapa interactivo llegará cuando se integre el backend.',
       },
       {
+        id: 'preferredNeighborhoodsOther', label: 'Especificar otro barrio (preferido)', type: 'text',
+        dependsOn: { fieldId: 'preferredNeighborhoods', includes: 'otro' },
+      },
+      {
         id: 'excludedNeighborhoods', label: 'Barrios o zonas donde NO vivirías', type: 'multiselect',
         options: CORDOBA_BARRIOS_OPTIONS,
+      },
+      {
+        id: 'excludedNeighborhoodsOther', label: 'Especificar otro barrio (a excluir)', type: 'text',
+        dependsOn: { fieldId: 'excludedNeighborhoods', includes: 'otro' },
       },
       { id: 'proximityNeeds', label: '¿Necesitás estar cerca de algún punto específico?', type: 'text', placeholder: 'Ej: mi facultad, mi trabajo...' },
     ],
@@ -117,7 +125,7 @@ export const STUDENT_QUESTIONNAIRE_SCHEMA: QuestionnaireSectionSchema[] = [
         ],
       },
       { id: 'canPayMonthlyContribution', label: '¿Podés pagar un aporte económico mensual por la habitación?', type: 'select', options: YES_NO_OPTIONS, required: true },
-      { id: 'contributionRangeArs', label: 'Rango de aporte que podés ofrecer (ARS mensuales)', type: 'text', placeholder: 'Ej: 50.000 - 80.000' },
+      { id: 'contributionRangeArs', label: 'Rango de aporte que podés ofrecer (ARS mensuales)', type: 'text', placeholder: 'Ej: 50.000 - 80.000', dependsOn: { fieldId: 'canPayMonthlyContribution', equals: 'si' } },
     ],
   },
   {
@@ -136,7 +144,7 @@ export const STUDENT_QUESTIONNAIRE_SCHEMA: QuestionnaireSectionSchema[] = [
           { value: 'otro', label: 'Otro' },
         ],
       },
-      { id: 'otherOffering', label: 'Especificar otro intercambio', type: 'text' },
+      { id: 'otherOffering', label: 'Especificar otro intercambio', type: 'text', dependsOn: { fieldId: 'offerings', includes: 'otro' } },
     ],
   },
   {
@@ -149,7 +157,7 @@ export const STUDENT_QUESTIONNAIRE_SCHEMA: QuestionnaireSectionSchema[] = [
         options: [{ value: 'si', label: 'Sí' }, { value: 'no', label: 'No' }, { value: 'solo-exterior', label: 'Solo en el exterior' }],
       },
       { id: 'hasPets', label: '¿Tenés mascotas?', type: 'select', options: YES_NO_OPTIONS },
-      { id: 'petsDetail', label: '¿Cuáles?', type: 'text', helperText: "Completar si respondiste 'Sí' a mascotas" },
+      { id: 'petsDetail', label: '¿Cuáles?', type: 'text', dependsOn: { fieldId: 'hasPets', equals: 'si' } },
       { id: 'hasChildrenAtHome', label: '¿Tenés hijos/as que vivirán en el hogar?', type: 'select', options: YES_NO_OPTIONS },
       { id: 'usualScheduleOut', label: '¿A qué hora salís habitualmente?', type: 'text', placeholder: 'Ej: 8:00' },
       { id: 'usualScheduleBack', label: '¿A qué hora volvés habitualmente?', type: 'text', placeholder: 'Ej: 20:00' },
@@ -167,7 +175,7 @@ export const STUDENT_QUESTIONNAIRE_SCHEMA: QuestionnaireSectionSchema[] = [
         ],
       },
       { id: 'cooksRegularly', label: '¿Cocinás habitualmente?', type: 'select', options: YES_NO_OPTIONS },
-      { id: 'cleanlinessExpectation', label: 'Nivel de orden y limpieza que esperás en el hogar', type: 'scale', min: 1, max: 5 },
+      { id: 'cleanlinessExpectation', label: 'Nivel de orden y limpieza que esperás en el hogar', type: 'scale', min: 1, max: 10 },
       { id: 'relevantAllergies', label: '¿Tenés alguna alergia relevante (alimentaria, medicamentos, otros)?', type: 'text' },
     ],
   },
@@ -178,7 +186,7 @@ export const STUDENT_QUESTIONNAIRE_SCHEMA: QuestionnaireSectionSchema[] = [
     fields: [
       { id: 'relevantHealthCondition', label: '¿Tenés alguna condición de salud que consideres importante mencionar?', type: 'textarea' },
       { id: 'needsDailySupport', label: '¿Necesitás algún tipo de apoyo para actividades cotidianas?', type: 'select', options: YES_NO_OPTIONS },
-      { id: 'dailySupportDetail', label: 'Detalle del apoyo necesario', type: 'text', helperText: "Completar si respondiste 'Sí'" },
+      { id: 'dailySupportDetail', label: 'Detalle del apoyo necesario', type: 'text', dependsOn: { fieldId: 'needsDailySupport', equals: 'si' } },
       {
         id: 'healthCoverage', label: 'Cobertura de salud', type: 'select',
         options: [

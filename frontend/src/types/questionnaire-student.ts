@@ -41,7 +41,11 @@ export interface StudentTravelReason {
 // --- 3. Preferencias de ubicación ---
 export interface StudentLocationPreferences {
   preferredNeighborhoods: string[];
+  /** Se completa solo si preferredNeighborhoods incluye 'otro'. */
+  preferredNeighborhoodsOther: string;
   excludedNeighborhoods: string[];
+  /** Se completa solo si excludedNeighborhoods incluye 'otro'. */
+  excludedNeighborhoodsOther: string;
   proximityNeeds: string;
 }
 
@@ -155,7 +159,9 @@ export const createEmptyStudentQuestionnaire = (): StudentQuestionnaireData => (
   },
   locationPreferences: {
     preferredNeighborhoods: [],
+    preferredNeighborhoodsOther: '',
     excludedNeighborhoods: [],
+    excludedNeighborhoodsOther: '',
     proximityNeeds: '',
   },
   economicSituation: {

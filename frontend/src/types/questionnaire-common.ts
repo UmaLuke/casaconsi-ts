@@ -75,6 +75,12 @@ export interface QuestionnaireFieldSchema {
   accept?: string;
   placeholder?: string;
   required?: boolean;
+  /**
+   * Muestra este campo solo si otro campo de la MISMA sección cumple una condición.
+   * `equals` sirve para campos de valor único (select/text); `includes` para
+   * multiselect (ej. mostrar "Especificar otro" solo si el array incluye 'otro').
+   */
+  dependsOn?: { fieldId: string; equals?: string; includes?: string };
 }
 
 export interface QuestionnaireSectionSchema {

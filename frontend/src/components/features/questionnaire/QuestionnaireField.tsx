@@ -15,6 +15,8 @@ interface QuestionnaireFieldProps {
   /** host -> teal, student -> orange (coherente con RegisterForm.tsx) */
   accentColor: 'teal' | 'orange';
   disabled?: boolean;
+  /** true cuando es obligatorio, está vacío y la persona ya intentó avanzar. */
+  invalid?: boolean;
 }
 
 const ACCENT_CLASSES = {
@@ -28,29 +30,44 @@ const ACCENT_CLASSES = {
   },
 } as const;
 
-const FieldLabel = ({ label, helperText, required }: { label: string; helperText?: string; required?: boolean }) => (
+const FieldLabel = ({
+  label,
+  helperText,
+  required,
+  invalid,
+}: {
+  label: string;
+  helperText?: string;
+  required?: boolean;
+  invalid?: boolean;
+}) => (
   <label className="label px-1 pt-0 pb-2 flex-col items-start">
     <span className="label-text font-semibold text-base-content/90">
       {label}
       {required && <span className="text-brand-orange ml-1">*</span>}
     </span>
-    {helperText && <span className="label-text-alt text-base-content/50 mt-0.5">{helperText}</span>}
+    {invalid ? (
+      <span className="label-text-alt text-error mt-0.5">Este campo es obligatorio</span>
+    ) : (
+      helperText && <span className="label-text-alt text-base-content/50 mt-0.5">{helperText}</span>
+    )}
   </label>
 );
 
 /** Convierte un FileList del input a un array de File, sin usar `any`. */
 const fileListToArray = (fileList: FileList | null): File[] => (fileList ? Array.from(fileList) : []);
 
-export const QuestionnaireField = ({ field, value, onChange, accentColor, disabled = false }: QuestionnaireFieldProps) => {
+export const QuestionnaireField = ({ field, value, onChange, accentColor, disabled = false, invalid = false }: QuestionnaireFieldProps) => {
   const accent = ACCENT_CLASSES[accentColor];
+  const invalidClass = invalid ? 'border-error' : '';
 
   switch (field.type) {
     case 'text': {
       const stringValue = typeof value === 'string' ? value : '';
       return (
         <div className="form-control w-full">
-          <FieldLabel label={field.label} helperText={field.helperText} required={field.required} />
-          <label className={`input input-bordered flex items-center gap-3 w-full transition-all bg-base-100 ${accent.focusInput}`}>
+          <FieldLabel label={field.label} helperText={field.helperText} required={field.required} invalid={invalid} />
+          <label className={`input input-bordered flex items-center gap-3 w-full transition-all bg-base-100 ${accent.focusInput} ${invalidClass}`}>
             <input
               type="text"
               className="grow"
@@ -69,8 +86,8 @@ export const QuestionnaireField = ({ field, value, onChange, accentColor, disabl
       const numericValue = typeof value === 'number' ? value : typeof value === 'string' ? value : '';
       return (
         <div className="form-control w-full">
-          <FieldLabel label={field.label} helperText={field.helperText} required={field.required} />
-          <label className={`input input-bordered flex items-center gap-3 w-full transition-all bg-base-100 ${accent.focusInput}`}>
+          <FieldLabel label={field.label} helperText={field.helperText} required={field.required} invalid={invalid} />
+          <label className={`input input-bordered flex items-center gap-3 w-full transition-all bg-base-100 ${accent.focusInput} ${invalidClass}`}>
             <input
               type="number"
               className="grow"
@@ -90,8 +107,8 @@ export const QuestionnaireField = ({ field, value, onChange, accentColor, disabl
       const dateValue = typeof value === 'string' ? value : '';
       return (
         <div className="form-control w-full">
-          <FieldLabel label={field.label} helperText={field.helperText} required={field.required} />
-          <label className={`input input-bordered flex items-center gap-3 w-full transition-all bg-base-100 ${accent.focusInput}`}>
+          <FieldLabel label={field.label} helperText={field.helperText} required={field.required} invalid={invalid} />
+          <label className={`input input-bordered flex items-center gap-3 w-full transition-all bg-base-100 ${accent.focusInput} ${invalidClass}`}>
             <input
               type="date"
               className="grow"
@@ -109,9 +126,9 @@ export const QuestionnaireField = ({ field, value, onChange, accentColor, disabl
       const textValue = typeof value === 'string' ? value : '';
       return (
         <div className="form-control w-full">
-          <FieldLabel label={field.label} helperText={field.helperText} required={field.required} />
+          <FieldLabel label={field.label} helperText={field.helperText} required={field.required} invalid={invalid} />
           <textarea
-            className={`textarea textarea-bordered w-full transition-all bg-base-100 ${accent.focusInput}`}
+            className={`textarea textarea-bordered w-full transition-all bg-base-100 ${accent.focusInput} ${invalidClass}`}
             rows={3}
             placeholder={field.placeholder}
             value={textValue}
@@ -127,9 +144,9 @@ export const QuestionnaireField = ({ field, value, onChange, accentColor, disabl
       const selectValue = typeof value === 'string' ? value : '';
       return (
         <div className="form-control w-full">
-          <FieldLabel label={field.label} helperText={field.helperText} required={field.required} />
+          <FieldLabel label={field.label} helperText={field.helperText} required={field.required} invalid={invalid} />
           <select
-            className={`select select-bordered w-full transition-all bg-base-100 ${accent.focusInput}`}
+            className={`select select-bordered w-full transition-all bg-base-100 ${accent.focusInput} ${invalidClass}`}
             value={selectValue}
             onChange={(e) => onChange(e.target.value)}
             disabled={disabled}
