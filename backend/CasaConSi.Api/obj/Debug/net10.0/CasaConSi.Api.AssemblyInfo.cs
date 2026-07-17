@@ -10,10 +10,11 @@
 using System;
 using System.Reflection;
 
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("b83eb2e6-e95a-4534-a3df-22ef07288de4")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("CasaConSi.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a2fb272a61f630f669b94bdedaa0b16138456022")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d2840510b8cb29d8fa0ddbc3e26abfcfb372dd95")]
 [assembly: System.Reflection.AssemblyProductAttribute("CasaConSi.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CasaConSi.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
