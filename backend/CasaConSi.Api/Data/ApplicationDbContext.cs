@@ -1,14 +1,19 @@
+using CasaConSi.Api.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace CasaConSi.Api.Data;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
     }
 
-    // Los DbSet<> de las entidades (User, Space, etc.) se agregan
-    // a medida que se van definiendo los módulos.
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+        // Acá van las configuraciones de Space, Match, etc. cuando lleguen esos módulos
+    }
 }

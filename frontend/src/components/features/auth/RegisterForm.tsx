@@ -113,14 +113,19 @@ export const RegisterForm = ({ onSubmit, isLoading = false }: RegisterFormProps)
             <input 
               type="password" 
               className="grow" 
-              placeholder="Mínimo 6 caracteres" 
+              placeholder="Mínimo 8 caracteres" 
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               required
-              minLength={6}
+              minLength={8}
+              pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}"
+              title="Debe tener al menos 8 caracteres, con una mayúscula, una minúscula, un número y un símbolo."
               disabled={isLoading}
             />
           </label>
+          <span className="label-text-alt text-base-content/50 px-1 pt-1">
+            Al menos 8 caracteres, con mayúscula, minúscula, número y un símbolo (ej: !@#$).
+          </span>
         </div>
       </div>
 
