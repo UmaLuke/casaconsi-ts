@@ -5,25 +5,29 @@ import { RegisterForm, type RegisterFormData } from '../../components/features/a
 import { BrandLogo } from "../../components/common/BrandLogo";
 import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { registerRequest, AuthError } from '../../services/authService';
 
 export const RegisterPage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { login } = useAuth(); // agregar esta línea
+  const { login } = useAuth();
 
   const handleRegister = async (userData: RegisterFormData) => {
     setIsLoading(true);
+    setErrorMessage(null);
     try {
-      // TODO: Conectar con tu Backend para crear el usuario
-      console.log('Registrando nuevo usuario:', userData);
-
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const { user, token } = await registerRequest(userData);
 
       // Dejamos a la persona autenticada y la mandamos a completar
       // el cuestionario obligatorio de su rol.
-      login({ name: userData.name, email: userData.email, role: userData.role });
-      navigate(userData.role === 'host' ? '/cuestionario/ofrecer' : '/cuestionario/buscar');
+      login(user, token);
+      navigate(user.role === 'host' ? '/cuestionario/ofrecer' : '/cuestionario/buscar');
     } catch (error) {
+      const message = error instanceof AuthError
+        ? error.message
+        : 'No pudimos conectar con el servidor. Probá de nuevo en un momento.';
+      setErrorMessage(message);
       console.error('Error al registrar', error);
     } finally {
       setIsLoading(false);
@@ -93,6 +97,13 @@ export const RegisterPage = () => {
               Completa tus datos para unirte a CASA CON SI.
             </p>
           </div>
+
+          {/* Mensaje de error del backend (email duplicado, contraseña débil, etc.) */}
+          {errorMessage && (
+            <div role="alert" className="alert alert-error text-sm py-3">
+              <span>{errorMessage}</span>
+            </div>
+          )}
 
           {/* Instancia del Formulario */}
           <RegisterForm onSubmit={handleRegister} isLoading={isLoading} />

@@ -18,7 +18,7 @@ const NAV_ITEMS: FloatingNavItem[] = [
 
 // "/" es la landing pública (sin sesión) y "/dashboard" ya tiene su propio
 // sidebar de gestión por rol, así que el flotante no se muestra ahí.
-const HIDDEN_ROUTES = ['/', '/dashboard'];
+const HIDDEN_ROUTES = ['/', '/dashboard', '/cuestionario/buscar', '/cuestionario/ofrecer'];
 
 export const FloatingNav = () => {
   const { user } = useAuth();

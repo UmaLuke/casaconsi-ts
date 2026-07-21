@@ -41,7 +41,7 @@ public class AuthService : IAuthService
             throw new InvalidOperationException(errors);
         }
 
-        return BuildAuthResponse(user);
+        return await BuildAuthResponseAsync(user);
     }
 
     public async Task<AuthResponseDto> LoginAsync(LoginRequestDto request)
@@ -52,12 +52,13 @@ public class AuthService : IAuthService
             throw new UnauthorizedAccessException("Correo o contraseña incorrectos.");
         }
 
-        return BuildAuthResponse(user);
+        return await BuildAuthResponseAsync(user);
     }
 
-    private AuthResponseDto BuildAuthResponse(ApplicationUser user)
+    private async Task<AuthResponseDto> BuildAuthResponseAsync(ApplicationUser user)
     {
         var (token, expiresAt) = _tokenService.GenerateToken(user);
+        var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
 
         return new AuthResponseDto
         {
@@ -68,6 +69,7 @@ public class AuthService : IAuthService
             Avatar = user.Avatar,
             Title = user.Title,
             Generation = user.Generation,
+            IsAdmin = isAdmin,
             Token = token,
             ExpiresAt = expiresAt,
         };

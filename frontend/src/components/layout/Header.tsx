@@ -1,6 +1,6 @@
 // src/components/layout/Header.tsx
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom'; // <-- Añadimos useLocation
+import { Link, useLocation } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import { BrandLogo } from '../common/BrandLogo';
 import { LoginModal } from '../features/auth/LoginModal';
@@ -9,9 +9,8 @@ import { useAuth } from '../../hooks/useAuth';
 export const Header = () => {
   const { user, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
-  const location = useLocation(); // <-- Instanciamos el hook para leer la ruta actual
+  const location = useLocation();
 
-  // Detector de scroll
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -25,19 +24,15 @@ export const Header = () => {
     modal?.showModal();
   };
 
-  // --- ARQUITECTURA DE UI DINÁMICA POR RUTA ---
   let headerBgClass = '';
 
   if (location.pathname === '/') {
-    // 1. Landing Page: Transparente arriba, Azul oscuro al scrollear
     headerBgClass = isScrolled 
       ? 'bg-brand-teal backdrop-blur-md shadow-sm' 
       : 'bg-transparent';
   } else if (location.pathname === '/explorar') {
-    // 2. Explore Spaces: Tu color "celestón" (usando el teal de la marca con efecto glassmorphism)
     headerBgClass = 'bg-brand-teal backdrop-blur-md shadow-sm border-b border-brand-teal/20'; 
   } else {
-    // 3. Resto de páginas (Dashboard, etc.): Azul marino sólido por defecto
     headerBgClass = 'bg-brand-navy shadow-sm';
   }
 
@@ -59,7 +54,6 @@ export const Header = () => {
                 </>
               )}
               {user?.role === 'student' && <li><Link to="/explorar">Explorar Casas</Link></li>}
-              {user?.role === 'host' && <li><Link to="/dashboard">Mis Inmuebles</Link></li>}
             </ul>
           </div>
           
@@ -81,9 +75,6 @@ export const Header = () => {
             {user?.role === 'student' && (
               <li><Link to="/explorar" className="hover:text-brand-orange hover:bg-transparent transition-colors">Mis solicitudes</Link></li>
             )}
-            {user?.role === 'host' && (
-              <li><Link to="/dashboard" className="hover:text-brand-orange hover:bg-transparent transition-colors">Panel de Gestión</Link></li>
-            )}
           </ul>
         </div>
 
@@ -101,7 +92,9 @@ export const Header = () => {
                   <span className="font-bold text-base-content text-sm block truncate">{user.name}</span>
                   <span className="text-xs font-normal text-base-content/60 capitalize block">{user.title ?? user.role}</span>
                 </li>
-                <li><Link to="/dashboard" className="font-medium hover:text-brand-teal transition-colors">Ir a mi Panel</Link></li>
+                {user.isAdmin && (
+                  <li><Link to="/dashboard" className="font-medium hover:text-brand-teal transition-colors">Ir a mi Panel</Link></li>
+                )}
                 <li><button onClick={logout} className="text-error font-bold hover:bg-error/10 hover:text-error mt-1 transition-colors">Cerrar Sesión</button></li>
               </ul>
             </div>

@@ -12,6 +12,7 @@ public record AuthResponseDto
     public string? Avatar { get; init; }
     public string? Title { get; init; }
     public Generation? Generation { get; init; }
+     public required bool IsAdmin { get; init; }
     public required string Token { get; init; }
     public required DateTime ExpiresAt { get; init; }
 }

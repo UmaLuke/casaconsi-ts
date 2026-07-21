@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 import { FloatingNav } from './components/layout/FloatingNav';
+import { ProtectedRoute } from './components/common/ProtectedRoute';
 import { LandingPage } from './pages/LandingPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
 import { AuthProvider } from './context/AuthContext';
@@ -37,7 +38,14 @@ export const App = () => {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/cuestionario/buscar" element={<StudentQuestionnairePage />} />
           <Route path="/cuestionario/ofrecer" element={<HostQuestionnairePage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute requireAdmin>
+                <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/explorar" element={<ExploreSpacesPage />} />
           <Route path="/mensajes" element={<MessagesPage />} />
           <Route path="/matches" element={<MatchesPage />} />

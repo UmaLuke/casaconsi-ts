@@ -1,49 +1,38 @@
 // src/components/features/auth/LoginModal.tsx
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LoginForm, type LoginFormData } from './LoginForm';
 import { useAuth } from '../../../hooks/useAuth';
-import type { User } from '../../../types/auth';
+import { loginRequest, AuthError } from '../../../services/authService';
 
 export const LoginModal = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleLogin = async (credentials: LoginFormData) => {
-    // 1. LÓGICA MOCK: Simulamos una respuesta del Backend basada en el email
-    let mockUser: User;
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      const { user, token } = await loginRequest(credentials);
+      login(user, token);
 
-    // Si escribes cualquier correo que contenga la palabra "estudiante"
-    if (credentials.email.toLowerCase().includes('estudiante')) {
-      mockUser = {
-        name: "Tomás G.",
-        email: credentials.email,
-        role: "student",
-        generation: "joven-adulto", // <-- Esto activará tu filtro automático
-        avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=150&auto=format&fit=crop"
-      };
-    } else {
-      // Si escribes cualquier otro correo (ej. host@correo.com)
-      mockUser = {
-        name: "Luni Pozzo",
-        email: credentials.email,
-        role: "host",
-        generation: "adulto-mayor",
-        title: "Fundadora",
-        avatar: "/casa1.png" // Usando tu avatar local
-      };
+      const modal = document.getElementById('login_modal') as HTMLDialogElement | null;
+      if (modal) {
+        modal.close();
+      }
+
+      navigate('/explorar');
+    } catch (error) {
+      const message = error instanceof AuthError
+        ? error.message
+        : 'No pudimos conectar con el servidor. Probá de nuevo en un momento.';
+      setErrorMessage(message);
+      console.error('Error al iniciar sesión', error);
+    } finally {
+      setIsLoading(false);
     }
-
-    // 2. Guardamos el usuario en el estado global (Context)
-    login(mockUser);
-
-    // 3. Cerramos el modal de DaisyUI
-    const modal = document.getElementById('login_modal') as HTMLDialogElement | null;
-    if (modal) {
-      modal.close();
-    }
-
-    // 4. Redirigimos a la página de explorar para ver la magia de los filtros en acción
-    navigate('/explorar');
   };
 
   const handleCloseModal = () => {
@@ -74,8 +63,13 @@ export const LoginModal = () => {
         </div>
 
         {/* Cuerpo del Formulario */}
-        <div className="p-6 sm:p-8 flex justify-center">
-          <LoginForm onSubmit={handleLogin} isLoading={false} />
+        <div className="p-6 sm:p-8 flex flex-col items-center gap-4">
+          {errorMessage && (
+            <div role="alert" className="alert alert-error text-sm py-3 w-full max-w-sm">
+              <span>{errorMessage}</span>
+            </div>
+          )}
+          <LoginForm onSubmit={handleLogin} isLoading={isLoading} />
         </div>
 
         {/* Footer de Registro */}

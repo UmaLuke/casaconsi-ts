@@ -70,6 +70,11 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 
 var app = builder.Build();
 
+// Seed del rol Admin y del usuario admin (si hay credenciales en AdminSeed:* vía user-secrets)
+using (var scope = app.Services.CreateScope())
+{
+    await CasaConSi.Api.Data.AdminSeeder.SeedAsync(scope.ServiceProvider);
+}
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
