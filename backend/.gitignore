@@ -1,0 +1,5 @@
+# Claves de Data Protection (cifran el DNI en la base) — nunca al repo.
+**/App_Data/keys/
+
+# Fotos subidas por usuarios (perfil, hogar) — contenido de usuarios, no código.
+**/wwwroot/uploads/

@@ -47,10 +47,14 @@ export const RegisterPage = () => {
         {/* Overlay con gradiente corporativo para garantizar legibilidad */}
         <div className="absolute inset-0 bg-linear-to-t from-brand-navy/95 via-brand-navy/70 to-brand-navy/40" />
 
-        {/* Botón de Regreso: reemplaza al logo, fijo arriba a la izquierda */}
-        <Link 
-          to="/" 
-          className="absolute top-12 left-12 lg:top-20 lg:left-20 z-10 inline-flex items-center gap-2 text-white/90 hover:text-white font-semibold transition-colors"
+        {/* Botón de Regreso: reemplaza al logo, fijo arriba a la izquierda.
+            z-20 (no z-10): el div del texto hero de más abajo también es
+            z-10 y, al venir después en el DOM, ganaba el empate y tapaba
+            este link con su caja completa (w-full h-full), aunque
+            visualmente esa zona se vea vacía por el justify-end. */}
+        <Link
+          to="/"
+          className="absolute top-12 left-12 lg:top-20 lg:left-20 z-20 inline-flex items-center gap-2 text-white/90 hover:text-white font-semibold transition-colors"
         >
           <ArrowLeft className="size-5" />
           Volver al inicio

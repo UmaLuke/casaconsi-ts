@@ -11,11 +11,15 @@ import { HOST_QUESTIONNAIRE_SCHEMA } from '../../data/hostQuestionnaireSchema';
 import { createEmptyHostQuestionnaire, type HostQuestionnaireData } from '../../types/questionnaire-host';
 import type { QuestionnaireFieldValue } from '../../types/questionnaire-common';
 import { deriveGenerationFromBirthDate } from '../../utils/generation';
+import { useAuth } from '../../hooks/useAuth';
+import { ProfileError, submitHostQuestionnaire } from '../../services/questionnaireService';
 
 export const HostQuestionnairePage = () => {
   const navigate = useNavigate();
+  const { token } = useAuth();
   const [formData, setFormData] = useState<HostQuestionnaireData>(createEmptyHostQuestionnaire());
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleFieldChange = (sectionId: string, fieldId: string, value: QuestionnaireFieldValue) => {
     setFormData((prev) => {
@@ -36,13 +40,23 @@ export const HostQuestionnairePage = () => {
   };
 
   const handleComplete = async () => {
+    if (!token) {
+      // No debería pasar: esta página vive detrás de ProtectedRoute.
+      setErrorMessage('Tu sesión expiró. Volvé a iniciar sesión.');
+      return;
+    }
+
+    setErrorMessage(null);
     setIsSubmitting(true);
     try {
-      // TODO: reemplazar por el POST real al backend .NET cuando esté disponible
-      // (services/questionnaireService.ts). Por ahora simulamos guardado exitoso.
-      console.log('Cuestionario OFREZCO CASA CON SI completo:', formData);
-      await new Promise((resolve) => setTimeout(resolve, 1200));
+      await submitHostQuestionnaire(formData, token);
       navigate('/dashboard');
+    } catch (error) {
+      const message = error instanceof ProfileError
+        ? error.message
+        : 'Ocurrió un error al guardar tu cuestionario. Probá de nuevo.';
+      setErrorMessage(message);
+      console.error('Error al guardar el cuestionario de host', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -62,6 +76,12 @@ export const HostQuestionnairePage = () => {
           Completá tu perfil para poder publicar tu habitación y recibir propuestas de personas interesadas.
         </p>
       </div>
+
+      {errorMessage && (
+        <div role="alert" className="alert alert-error text-sm py-3 max-w-2xl mx-auto mb-6">
+          <span>{errorMessage}</span>
+        </div>
+      )}
 
       <QuestionnaireWizard
         sections={HOST_QUESTIONNAIRE_SCHEMA}

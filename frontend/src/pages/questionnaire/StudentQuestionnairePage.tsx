@@ -11,11 +11,15 @@ import { STUDENT_QUESTIONNAIRE_SCHEMA } from '../../data/studentQuestionnaireSch
 import { createEmptyStudentQuestionnaire, type StudentQuestionnaireData } from '../../types/questionnaire-student';
 import type { QuestionnaireFieldValue } from '../../types/questionnaire-common';
 import { deriveGenerationFromBirthDate } from '../../utils/generation';
+import { useAuth } from '../../hooks/useAuth';
+import { ProfileError, submitStudentQuestionnaire } from '../../services/questionnaireService';
 
 export const StudentQuestionnairePage = () => {
   const navigate = useNavigate();
+  const { token } = useAuth();
   const [formData, setFormData] = useState<StudentQuestionnaireData>(createEmptyStudentQuestionnaire());
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleFieldChange = (sectionId: string, fieldId: string, value: QuestionnaireFieldValue) => {
     setFormData((prev) => {
@@ -36,13 +40,23 @@ export const StudentQuestionnairePage = () => {
   };
 
   const handleComplete = async () => {
+    if (!token) {
+      // No debería pasar: esta página vive detrás de ProtectedRoute.
+      setErrorMessage('Tu sesión expiró. Volvé a iniciar sesión.');
+      return;
+    }
+
+    setErrorMessage(null);
     setIsSubmitting(true);
     try {
-      // TODO: reemplazar por el POST real al backend .NET cuando esté disponible
-      // (services/questionnaireService.ts). Por ahora simulamos guardado exitoso.
-      console.log('Cuestionario BUSCO CASA CON SI completo:', formData);
-      await new Promise((resolve) => setTimeout(resolve, 1200));
+      await submitStudentQuestionnaire(formData, token);
       navigate('/dashboard');
+    } catch (error) {
+      const message = error instanceof ProfileError
+        ? error.message
+        : 'Ocurrió un error al guardar tu cuestionario. Probá de nuevo.';
+      setErrorMessage(message);
+      console.error('Error al guardar el cuestionario de student', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -62,6 +76,12 @@ export const StudentQuestionnairePage = () => {
           Completá tu perfil para poder explorar habitaciones y recibir propuestas de personas anfitrionas.
         </p>
       </div>
+
+      {errorMessage && (
+        <div role="alert" className="alert alert-error text-sm py-3 max-w-2xl mx-auto mb-6">
+          <span>{errorMessage}</span>
+        </div>
+      )}
 
       <QuestionnaireWizard
         sections={STUDENT_QUESTIONNAIRE_SCHEMA}
