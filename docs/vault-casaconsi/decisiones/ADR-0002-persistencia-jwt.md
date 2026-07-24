@@ -1,9 +1,9 @@
-tags: [adr, frontend, auth, pendiente]
+tags: [adr, frontend, auth]
 
 # ADR-0002: Estrategia de persistencia del JWT en el frontend
 
-- **Fecha:** (pendiente de decidir)
-- **Estado:** Propuesta — DECISIÓN ABIERTA
+- **Fecha:** (implementado antes de documentarse formalmente acá — corregido al encontrar el código real)
+- **Estado:** Aceptada
 
 ## Contexto
 El módulo Auth del backend ya está verificado end-to-end (`/api/auth/register`, `/api/auth/login`). Falta definir dónde y cómo persistir el JWT en el frontend antes de conectar `AuthContext`, `LoginModal.tsx` y `RegisterPage.tsx` a los endpoints reales.
@@ -20,10 +20,14 @@ El módulo Auth del backend ya está verificado end-to-end (`/api/auth/register`
    - Desventaja: requiere que el backend la setee (`Set-Cookie`), manejo de CSRF, y ajustar CORS/credentials entre `localhost:5173` y `localhost:8000`.
 
 ## Decisión
-_Pendiente — completar cuando se resuelva._
+**`localStorage`**, clave `casaconsi_auth` (`{ user, token }`). `AuthContext.tsx` rehidrata la sesión al montar la app leyendo esa clave; `login()`/`logout()` la escriben/limpian.
+
+Limitación aceptada explícitamente (comentario en el propio `AuthContext.tsx`): no hay endpoint `/me` todavía para validar el token contra el backend al rehidratar. Si el token venció, recién se detecta cuando falla la primera llamada autenticada (401) — el `logout()` automático ante un 401 queda pendiente.
 
 ## Consecuencias
-_Completar tras decidir. Afecta directamente cómo se implementan `AuthContext`, el interceptor de peticiones HTTP, y la configuración de CORS en `Program.cs`._
+- `authService.ts` y `questionnaireService.ts` ya mandan el JWT como header `Authorization: Bearer <token>` en cada request protegido (patrón `authHeaders(token)`).
+- Expuesto a XSS (cualquier script en la página puede leer `localStorage`) — riesgo aceptado por ahora, no mitigado.
+- Pendiente: detectar 401 en las respuestas y disparar `logout()` automáticamente (hoy no existe ese interceptor).
 
 ## Enlaces relacionados
 - [[modulos/Auth]]

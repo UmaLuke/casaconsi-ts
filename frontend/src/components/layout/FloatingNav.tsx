@@ -1,6 +1,6 @@
 // src/components/layout/FloatingNav.tsx
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, MessageSquare, Heart, GraduationCap, type LucideIcon } from 'lucide-react';
+import { Home, MessageSquare, GraduationCap, type LucideIcon } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 interface FloatingNavItem {
@@ -12,7 +12,6 @@ interface FloatingNavItem {
 const NAV_ITEMS: FloatingNavItem[] = [
   { to: '/explorar', label: 'Inicio', icon: Home },
   { to: '/mensajes', label: 'Mensajes', icon: MessageSquare },
-  { to: '/matches', label: 'Matches', icon: Heart },
   { to: '/asesorias', label: 'Asesorías', icon: GraduationCap },
 ];
 

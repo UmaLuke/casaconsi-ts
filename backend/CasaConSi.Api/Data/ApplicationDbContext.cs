@@ -13,7 +13,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
     public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
     public DbSet<HostProfile> HostProfiles => Set<HostProfile>();
-
+    public DbSet<ProfileLike> ProfileLikes => Set<ProfileLike>();
+    public DbSet<Match> Matches => Set<Match>();
+    public DbSet<Space> Spaces => Set<Space>();
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -64,6 +66,34 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.HasIndex(p => p.PreferredTenantGeneration);
         });
 
-        // Acá van las configuraciones de Space, Match, etc. cuando lleguen esos módulos
+        // Un mismo par (Student, Host) puede tener hasta dos ProfileLike (una
+        // por rol que decide). Restrict del lado Host: decisión de diseño
+        // (no una limitación técnica — Postgres sí permite Cascade en ambas
+        // FKs a la vez, a diferencia de SQL Server). Si se borra un Host con
+        // likes/matches pendientes, hay que limpiarlos explícitamente antes.
+        builder.Entity<ProfileLike>(entity =>
+        {
+            entity.HasIndex(l => new { l.StudentUserId, l.HostUserId, l.DecidedByRole }).IsUnique();
+            entity.HasOne<ApplicationUser>().WithMany().HasForeignKey(l => l.StudentUserId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<ApplicationUser>().WithMany().HasForeignKey(l => l.HostUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<Match>(entity =>
+        {
+            entity.HasIndex(m => new { m.StudentUserId, m.HostUserId }).IsUnique();
+            entity.HasOne<ApplicationUser>().WithMany().HasForeignKey(m => m.StudentUserId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<ApplicationUser>().WithMany().HasForeignKey(m => m.HostUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Acá van las configuraciones de Space, etc. cuando llegue ese módulo
+        builder.Entity<Space>(entity =>
+        {
+            entity.HasIndex(s => s.HostUserId);
+            entity.HasIndex(s => s.Neighborhood);
+            entity.HasOne(s => s.Host)
+                .WithMany()
+                .HasForeignKey(s => s.HostUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+       });
     }
 }

@@ -32,6 +32,11 @@ tags: [convenciones, backend]
 ## Build / control de versiones
 - `bin/` y `obj/` (artefactos de compilación) **no se versionan** — deben estar en `.gitignore`.
 
+## Gotchas / lecciones aprendidas
+- **`dotnet build`/`dotnet ef` con el backend corriendo:** si tenés `dotnet run` (u otro proceso `CasaConSi.Api`) activo en otra terminal, `dotnet build` o `dotnet ef database update` fallan porque no pueden reemplazar `bin/Debug/net10.0/CasaConSi.Api.exe` (bloqueado). Parar el proceso (`Stop-Process -Id <pid> -Force` o Ctrl+C en la terminal donde corre) antes de migrar.
+- **Relaciones EF Core con propiedad de navegación sin conectar:** si una entidad tiene una propiedad de navegación (ej. `Space.Host`) pero en `OnModelCreating` configurás la relación con el patrón "sin navegación" (`HasOne<ApplicationUser>().WithMany()...`) en vez de usar esa propiedad (`HasOne(s => s.Host).WithMany()...`), EF Core trata la navegación no conectada como una relación *aparte* y crea una FK sombra duplicada (pasó con `Space`: apareció una columna `HostId` fantasma además de `HostUserId`). Si una entidad tiene navegación, hay que usarla explícitamente en la config; si no la necesitás, mejor sacar la propiedad de navegación del modelo (como en `ProfileLike`/`Match`, que no la tienen).
+- **Multiple cascade paths es un límite de SQL Server, no de Postgres:** Npgsql permite `OnDelete(DeleteBehavior.Cascade)` en dos FKs distintas a la misma tabla desde la misma entidad sin problema (ver `ProfileLike`/`Match`, que igual usan `Restrict` de un lado, pero por decisión de diseño — no por una limitación técnica de la base).
+
 ## Enlaces relacionados
 - [[decisiones/ADR-0001-arquitectura-single-project]]
 - [[00-Roadmap]]

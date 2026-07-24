@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using CasaConSi.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CasaConSi.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260723214859_AddMatch")]
+    partial class AddMatch
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -220,79 +223,6 @@ namespace CasaConSi.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("ProfileLikes");
-                });
-
-            modelBuilder.Entity("CasaConSi.Api.Models.Space", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.PrimitiveCollection<List<string>>("Amenities")
-                        .IsRequired()
-                        .HasColumnType("text[]");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Duration")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ExternalImageUrl")
-                        .HasColumnType("text");
-
-                    b.Property<string>("HostTypeLabel")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("HostUserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Location")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Neighborhood")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.PrimitiveCollection<List<string>>("PhotoPaths")
-                        .IsRequired()
-                        .HasColumnType("text[]");
-
-                    b.Property<decimal>("PriceArs")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("Purpose")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("Verified")
-                        .HasColumnType("boolean");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("HostUserId");
-
-                    b.HasIndex("Neighborhood");
-
-                    b.ToTable("Spaces");
                 });
 
             modelBuilder.Entity("CasaConSi.Api.Models.StudentProfile", b =>
@@ -828,17 +758,6 @@ namespace CasaConSi.Api.Migrations
                         .HasForeignKey("StudentUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("CasaConSi.Api.Models.Space", b =>
-                {
-                    b.HasOne("CasaConSi.Api.Models.ApplicationUser", "Host")
-                        .WithMany()
-                        .HasForeignKey("HostUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Host");
                 });
 
             modelBuilder.Entity("CasaConSi.Api.Models.StudentProfile", b =>

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using CasaConSi.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CasaConSi.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260724014449_AddSpace")]
+    partial class AddSpace
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -246,6 +249,9 @@ namespace CasaConSi.Api.Migrations
                     b.Property<string>("ExternalImageUrl")
                         .HasColumnType("text");
 
+                    b.Property<string>("HostId")
+                        .HasColumnType("text");
+
                     b.Property<string>("HostTypeLabel")
                         .IsRequired()
                         .HasColumnType("text");
@@ -287,6 +293,8 @@ namespace CasaConSi.Api.Migrations
                         .HasColumnType("boolean");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("HostId");
 
                     b.HasIndex("HostUserId");
 
@@ -833,6 +841,10 @@ namespace CasaConSi.Api.Migrations
             modelBuilder.Entity("CasaConSi.Api.Models.Space", b =>
                 {
                     b.HasOne("CasaConSi.Api.Models.ApplicationUser", "Host")
+                        .WithMany()
+                        .HasForeignKey("HostId");
+
+                    b.HasOne("CasaConSi.Api.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("HostUserId")
                         .OnDelete(DeleteBehavior.Cascade)

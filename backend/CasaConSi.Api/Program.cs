@@ -73,7 +73,12 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<CasaConSi.Api.Repositories.Interfaces.IProfileRepository, CasaConSi.Api.Repositories.ProfileRepository>();
 builder.Services.AddScoped<CasaConSi.Api.Services.Interfaces.IProfileService, CasaConSi.Api.Services.ProfileService>();
 builder.Services.AddScoped<CasaConSi.Api.Services.Interfaces.IFileStorageService, CasaConSi.Api.Services.FileStorageService>();
-
+//Servicios propios del módulo de Match (like mutuo)
+builder.Services.AddScoped<CasaConSi.Api.Repositories.Interfaces.IMatchRepository, CasaConSi.Api.Repositories.MatchRepository>();
+builder.Services.AddScoped<CasaConSi.Api.Services.Interfaces.IMatchService, CasaConSi.Api.Services.MatchService>();
+// Servicios propios del módulo Space
+builder.Services.AddScoped<CasaConSi.Api.Repositories.Interfaces.ISpaceRepository, CasaConSi.Api.Repositories.SpaceRepository>();
+builder.Services.AddScoped<CasaConSi.Api.Services.Interfaces.ISpaceService, CasaConSi.Api.Services.SpaceService>();
 // Data Protection: cifra el DNI antes de guardarlo (ver ProfileService). Las
 // claves se persisten en disco para que sobrevivan a un reinicio del proceso
 // en desarrollo — en Azure, esto debería apuntar a Azure Key Vault / Blob
@@ -101,11 +106,23 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Configure the HTTP request pipeline.
+// Seed de perfiles de prueba (estudiantes/anfitriones) para poder probar la UI
+// de Match's/Mensajes con datos reales. Solo en Development — nunca en prod.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    using var demoScope = app.Services.CreateScope();
+    try
+    {
+        await CasaConSi.Api.Data.DemoProfileSeeder.SeedAsync(demoScope.ServiceProvider);
+        await CasaConSi.Api.Data.DemoSpaceSeeder.SeedAsync(demoScope.ServiceProvider);
+    }
+    catch (Exception ex)
+    {
+        var logger = demoScope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogWarning(ex, "No se pudo completar el seed de perfiles/espacios de prueba.");
+     }
 }
+
 
 app.UseHttpsRedirection();
 

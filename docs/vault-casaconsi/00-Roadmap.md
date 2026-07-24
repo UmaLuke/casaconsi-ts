@@ -17,6 +17,27 @@ Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/fronten
 - Migración de Identity aplicada a `db_ccs` (20 columnas).
 - Verificado end-to-end con Postman.
 
+### Módulo Perfiles / cuestionario post-registro ([[modulos/Perfiles]])
+- `StudentProfile` (9 secciones) y `HostProfile` (8 secciones), jsonb + columnas promovidas para el futuro Match.
+- `ProfileController` → `ProfileService` → `ProfileRepository`, endpoints `GET /status`, `PUT/GET /student`, `PUT/GET /host`, subida de fotos para ambos roles.
+- DNI cifrado (Data Protection), `Generation` derivada de `BirthDate` en el backend.
+- Migración `AddProfiles` aplicada a `db_ccs`.
+- `DemoProfileSeeder` (solo Development): 3 estudiantes + 3 anfitriones con perfiles completos — ver [[datos-demo]].
+
+### Módulo Match ([[modulos/Match]])
+- Like mutuo: `ProfileLike` (swipe direccional) + `Match` (se crea cuando hay like mutuo).
+- `MatchController` → `MatchService` → `MatchRepository`. Endpoints: `GET /api/match/feed`, `POST /api/match/like`, `GET /api/match`.
+- Migración `AddMatch` aplicada a `db_ccs`.
+- Regla de generación opuesta (`canMatch` de `frontend/src/types/filters.ts`) implementada en el feed y en el like.
+- Frontend: `GET /api/match` conectado en `MessagesPage.tsx` (sección "Match's"). `GET /api/match/feed` + `POST /api/match/like` sin pantalla todavía.
+
+### Módulo Space ([[modulos/Space]])
+- `Space`: habitación/propiedad publicada por un anfitrión (N:1 con `ApplicationUser`, no confundir con `HostProfile.HousingData`, que es el cuestionario).
+- `SpaceController` → `SpaceService` → `SpaceRepository`. Endpoints: `GET /api/space` (público), `GET /api/space/{id}` (público), `GET /api/space/mine`, `POST /api/space`, `POST /api/space/{id}/photos` (los últimos tres, solo Host).
+- Migraciones `AddSpace` + `FixSpaceHostRelationship` aplicadas a `db_ccs` (la segunda corrige una FK sombra duplicada — ver [[convenciones/backend]], sección Gotchas).
+- `DemoSpaceSeeder` (solo Development): 3 espacios de prueba, uno por cada anfitrión demo — ver [[datos-demo]].
+- Frontend: `ExploreSpacesPage.tsx` conectado a `GET /api/space` vía `spaceService.ts`, reemplazando el array `mockSpaces` hardcodeado. Filtros siguen siendo client-side sobre los datos ya traídos.
+
 ## ✅ Frontend — Completado (Fase 1, según Hoja de Ruta técnica)
 
 - Enrutamiento resuelto (Vite `import-analysis`, árbol de rutas en `App.jsx`).
@@ -32,9 +53,12 @@ Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/fronten
 
 ## 🚧 En curso / próximos pasos inmediatos
 
-- [ ] **Decisión pendiente:** estrategia de persistencia del JWT — `localStorage` vs. estado en memoria (React) vs. cookie `httpOnly`. Definir antes de conectar `AuthContext`, `LoginModal.tsx` y `RegisterPage.tsx` a los endpoints reales.
-- [x] Conectar frontend (`AuthContext`, `LoginModal.tsx`, `RegisterPage.tsx`) a los endpoints reales usando `src/config.ts` / `VITE_API_URL`.
-- [ ] Backend del cuestionario post-registro (estudiante: 9 secciones, anfitrión: 8 secciones). Frontend del cuestionario ya está construido.
+- [x] JWT: `localStorage` (ver [[decisiones/ADR-0002-persistencia-jwt]]). `AuthContext`, `authService.ts` y `questionnaireService.ts` ya conectados a los endpoints reales.
+- [x] Backend del cuestionario post-registro (estudiante: 9 secciones, anfitrión: 8 secciones) — ver [[modulos/Perfiles]]. Falta conectar el frontend del cuestionario (ya construido) a estos endpoints.
+- [x] Frontend: unificadas las páginas `MessagesPage` y `MatchesPage` en una sola (`/mensajes`, con sección "Match's" arriba de "Mensajes"). `MatchesPage.tsx` eliminada, ruta `/matches` sacada de `App.tsx`, botón correspondiente sacado del `FloatingNav`.
+- [x] `MessagesPage.tsx` (sección "Match's") conectada a `GET /api/match` — ver [[modulos/Match]].
+- [x] Backend del módulo Space + `ExploreSpacesPage.tsx` conectado a `GET /api/space` (ver [[modulos/Space]]) — 3 espacios demo enlazados a los anfitriones demo, reemplazando `mockSpaces`.
+- [ ] Pendiente: interceptor de 401 → `logout()` automático (no hay endpoint `/me` para validar el token al rehidratar).
 
 ---
 
@@ -45,22 +69,22 @@ Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/fronten
 - [ ] `ProfilePage.jsx` — gestión de datos personales, foto y preferencias de convivencia.
 
 ### Módulo estudiante (buscador de alojamiento)
-- [ ] `ExploreSpacesPage.jsx` — buscador con filtros (precio, zona, servicios) + grid.
-- [ ] `SpaceDetailPage.jsx` — ficha de propiedad, galería, perfil de anfitrión, solicitud de reserva.
-- [ ] `ApplicationsList.jsx` — seguimiento de solicitudes (Pendiente / En Entrevista / Aceptada).
+- [x] `ExploreSpacesPage.jsx` — buscador con filtros (precio, zona, servicios) + grid. Conectado a `GET /api/space` real (ver [[modulos/Space]]).
+- [ ] `SpaceDetailPage.jsx` — ficha de propiedad, galería, perfil de anfitrión, solicitud de reserva. Backend ya soporta `GET /api/space/{id}`, falta la pantalla.
+- [ ] `ApplicationsList.jsx` — seguimiento de solicitudes (Pendiente / En Entrevista / Aceptada). ⚠️ Ver nota de inconsistencia en [[modulos/Match]]: no está claro si esto convive con el modelo de like mutuo o queda obsoleto.
 
 ### Módulo anfitrión (gestión de propiedades)
-- [ ] `MySpacesList.jsx` — administrar habitaciones publicadas.
-- [ ] `NewSpaceForm.jsx` — alta de alojamiento por pasos.
-- [ ] `IncomingRequests.jsx` — gestión de solicitudes recibidas (aceptar/rechazar).
+- [ ] `MySpacesList.jsx` — administrar habitaciones publicadas. Backend ya soporta `GET /api/space/mine`, falta la pantalla.
+- [ ] `NewSpaceForm.jsx` — alta de alojamiento por pasos. Backend ya soporta `POST /api/space` + `POST /api/space/{id}/photos`, falta la pantalla.
+- [ ] `IncomingRequests.jsx` — gestión de solicitudes recibidas (aceptar/rechazar). Misma nota de inconsistencia que `ApplicationsList.jsx`.
 
 ---
 
 ## 🧱 Backend — módulos pendientes
 
-- [ ] [[modulos/Space]] — repositorio y lógica de espacios/propiedades.
-- [ ] [[modulos/Match]] — lógica de matching estudiante↔anfitrión.
 - [ ] [[modulos/Asesorias]] — asesorías profesionales (pago por sesión).
+- [ ] Chat en tiempo real (SignalR): `Conversation`/`Message`, habilitado por `Match` (ver [[modulos/Match]]).
+- [ ] Pantalla de descubrimiento/swipe (nueva, sin diseñar todavía) para conectar `GET /api/match/feed` + `POST /api/match/like`.
 
 ---
 

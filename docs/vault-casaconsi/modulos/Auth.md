@@ -20,14 +20,16 @@ tags: [modulo, backend, frontend, auth]
 
 - `User` (tipo): `id: string` no opcional (corregido).
 - `RegisterForm.tsx`: `minLength=8` + patrón que exige mayúscula/minúscula/dígito/no-alfanumérico, con texto de ayuda visible.
-- Pendiente aplicar la misma corrección en `LoginForm.tsx` si tiene el mismo problema (confirmar antes de tocar).
+- `authService.ts` conectado a `POST /api/auth/register` y `POST /api/auth/login` reales (vía `VITE_API_URL`).
+- `AuthContext.tsx` persiste `{ user, token }` en `localStorage` (`casaconsi_auth`) — ver [[../decisiones/ADR-0002-persistencia-jwt|ADR-0002]].
+- Pendiente aplicar la misma corrección de password que `RegisterForm.tsx` en `LoginForm.tsx` si tiene el mismo problema (confirmar antes de tocar).
 
 ## Testeo
 - Verificado con Postman (extensión de VS Code): códigos de estado y payloads correctos en registro y login.
 
 ## Pendiente
-- [[decisiones/ADR-0002-persistencia-jwt]] — decisión abierta sobre dónde guardar el JWT.
-- Conectar `AuthContext`, `LoginModal.tsx`, `RegisterPage.tsx` a los endpoints reales vía `src/config.ts` (`VITE_API_URL`).
+- Detectar 401 en respuestas autenticadas y disparar `logout()` automáticamente (no hay interceptor todavía, ver [[../decisiones/ADR-0002-persistencia-jwt|ADR-0002]]).
+- Endpoint `/me` para validar el token al rehidratar la sesión desde `localStorage`.
 
 ## Enlaces relacionados
 - [[convenciones/backend]]

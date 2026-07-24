@@ -9,7 +9,6 @@ import { AuthProvider } from './context/AuthContext';
 import { DashboardPage } from './pages/DashboardPage';
 import { ExploreSpacesPage } from './pages/ExploreSpacesPage';
 import { MessagesPage } from './pages/MessagesPage';
-import { MatchesPage } from './pages/MatchesPage';
 import { AdvisoryPage } from './pages/AdvisoryPage';
 import { StudentQuestionnairePage } from './pages/questionnaire/StudentQuestionnairePage';
 import { HostQuestionnairePage } from './pages/questionnaire/HostQuestionnairePage';
@@ -48,7 +47,6 @@ export const App = () => {
           />
           <Route path="/explorar" element={<ExploreSpacesPage />} />
           <Route path="/mensajes" element={<MessagesPage />} />
-          <Route path="/matches" element={<MatchesPage />} />
           <Route path="/asesorias" element={<AdvisoryPage />} />
         </Routes>
       </Router>
