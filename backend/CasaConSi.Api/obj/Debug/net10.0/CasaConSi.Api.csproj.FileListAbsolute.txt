@@ -179,3 +179,4 @@ C:\Users\win10\Desktop\casaconsi.ts\backend\CasaConSi.Api\obj\Debug\net10.0\Casa
 C:\Users\win10\Desktop\casaconsi.ts\backend\CasaConSi.Api\obj\Debug\net10.0\CasaConSi.Api.genruntimeconfig.cache
 C:\Users\win10\Desktop\casaconsi.ts\backend\CasaConSi.Api\obj\Debug\net10.0\ref\CasaConSi.Api.dll
 C:\Users\win10\Desktop\casaconsi.ts\backend\CasaConSi.Api\bin\Debug\net10.0\Microsoft.Bcl.Cryptography.dll
+C:\Users\win10\Desktop\casaconsi.ts\backend\CasaConSi.Api\bin\Debug\net10.0\CasaConSi.Api.staticwebassets.runtime.json

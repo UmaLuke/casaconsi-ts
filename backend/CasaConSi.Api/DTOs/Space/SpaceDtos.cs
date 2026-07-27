@@ -8,6 +8,8 @@ namespace CasaConSi.Api.DTOs.Space;
 public record SpaceResponseDto
 {
     public required Guid Id { get; init; }
+    public required string HostUserId { get; init; }
+    public required string HostName { get; init; }
     public required string Title { get; init; }
     public required string Location { get; init; }
     public required string Neighborhood { get; init; }

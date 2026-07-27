@@ -16,6 +16,8 @@ const PLACEHOLDER_IMAGE_URL =
 // fotos no tiene ninguna) — el null se resuelve en toSpace(), no en el DTO.
 interface SpaceResponseDto {
   id: string;
+  hostUserId: string;
+  hostName: string;
   title: string;
   location: string;
   neighborhood: string;
@@ -39,6 +41,8 @@ const toImageUrl = (imageUrl: string | null): string => {
 
 const toSpace = (dto: SpaceResponseDto): Space => ({
   id: dto.id,
+  hostUserId: dto.hostUserId,
+  hostName: dto.hostName,
   title: dto.title,
   location: dto.location,
   neighborhood: dto.neighborhood,

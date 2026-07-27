@@ -1,6 +1,6 @@
 // src/components/layout/Header.tsx
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import { BrandLogo } from '../common/BrandLogo';
 import { LoginModal } from '../features/auth/LoginModal';
@@ -10,6 +10,12 @@ export const Header = () => {
   const { user, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -54,6 +60,7 @@ export const Header = () => {
                 </>
               )}
               {user?.role === 'student' && <li><Link to="/explorar">Explorar Casas</Link></li>}
+              {user?.role === 'host' && <li><Link to="/descubrir">Descubrir Perfiles</Link></li>}
             </ul>
           </div>
           
@@ -75,6 +82,9 @@ export const Header = () => {
             {user?.role === 'student' && (
               <li><Link to="/explorar" className="hover:text-brand-orange hover:bg-transparent transition-colors">Mis solicitudes</Link></li>
             )}
+            {user?.role === 'host' && (
+              <li><Link to="/descubrir" className="hover:text-brand-orange hover:bg-transparent transition-colors">Descubrir Perfiles</Link></li>
+            )}
           </ul>
         </div>
 
@@ -95,7 +105,7 @@ export const Header = () => {
                 {user.isAdmin && (
                   <li><Link to="/dashboard" className="font-medium hover:text-brand-teal transition-colors">Ir a mi Panel</Link></li>
                 )}
-                <li><button onClick={logout} className="text-error font-bold hover:bg-error/10 hover:text-error mt-1 transition-colors">Cerrar Sesión</button></li>
+                <li><button onClick={handleLogout} className="text-error font-bold hover:bg-error/10 hover:text-error mt-1 transition-colors">Cerrar Sesión</button></li>
               </ul>
             </div>
           ) : (

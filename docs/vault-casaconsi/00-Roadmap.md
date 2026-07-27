@@ -29,7 +29,7 @@ Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/fronten
 - `MatchController` → `MatchService` → `MatchRepository`. Endpoints: `GET /api/match/feed`, `POST /api/match/like`, `GET /api/match`.
 - Migración `AddMatch` aplicada a `db_ccs`.
 - Regla de generación opuesta (`canMatch` de `frontend/src/types/filters.ts`) implementada en el feed y en el like.
-- Frontend: `GET /api/match` conectado en `MessagesPage.tsx` (sección "Match's"). `GET /api/match/feed` + `POST /api/match/like` sin pantalla todavía.
+- Frontend: `GET /api/match` conectado en `MessagesPage.tsx` (sección "Match's"). `POST /api/match/like` conectado desde `ExploreSpacesPage.tsx`/`SpaceDetailsModal.tsx` (botones ✕ rechazar / ✓ match sobre un Space, ver [[modulos/Space]]) y desde `DiscoverPage.tsx` (`GET /api/match/feed` + swipe, ver [[modulos/Match]]).
 
 ### Módulo Space ([[modulos/Space]])
 - `Space`: habitación/propiedad publicada por un anfitrión (N:1 con `ApplicationUser`, no confundir con `HostProfile.HousingData`, que es el cuestionario).
@@ -37,6 +37,7 @@ Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/fronten
 - Migraciones `AddSpace` + `FixSpaceHostRelationship` aplicadas a `db_ccs` (la segunda corrige una FK sombra duplicada — ver [[convenciones/backend]], sección Gotchas).
 - `DemoSpaceSeeder` (solo Development): 3 espacios de prueba, uno por cada anfitrión demo — ver [[datos-demo]].
 - Frontend: `ExploreSpacesPage.tsx` conectado a `GET /api/space` vía `spaceService.ts`, reemplazando el array `mockSpaces` hardcodeado. Filtros siguen siendo client-side sobre los datos ya traídos.
+- `SpaceResponseDto` ahora expone `HostUserId`. Botón "Ver detalles" de cada card abre `SpaceDetailsModal.tsx` (nuevo); debajo del botón (y en el footer del modal) hay botones ✕/✓ (`MatchDecisionButtons.tsx`, nuevo) que llaman a `POST /api/match/like` — ver [[modulos/Match]].
 
 ## ✅ Frontend — Completado (Fase 1, según Hoja de Ruta técnica)
 
@@ -58,6 +59,8 @@ Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/fronten
 - [x] Frontend: unificadas las páginas `MessagesPage` y `MatchesPage` en una sola (`/mensajes`, con sección "Match's" arriba de "Mensajes"). `MatchesPage.tsx` eliminada, ruta `/matches` sacada de `App.tsx`, botón correspondiente sacado del `FloatingNav`.
 - [x] `MessagesPage.tsx` (sección "Match's") conectada a `GET /api/match` — ver [[modulos/Match]].
 - [x] Backend del módulo Space + `ExploreSpacesPage.tsx` conectado a `GET /api/space` (ver [[modulos/Space]]) — 3 espacios demo enlazados a los anfitriones demo, reemplazando `mockSpaces`.
+- [x] `SpaceDetailsModal.tsx` + botones de like/pass (`MatchDecisionButtons.tsx`) sobre un `Space`, conectados a `POST /api/match/like` — ver [[modulos/Space]] y [[modulos/Match]]. Requirió exponer `HostUserId` y `HostName` en `SpaceResponseDto`.
+- [x] `DiscoverPage.tsx` (ruta `/descubrir`, protegida): pantalla de swipe (un perfil a la vez) conectada a `GET /api/match/feed` + `POST /api/match/like` — ver [[modulos/Match]]. `Header` linkea "Descubrir Perfiles" solo para `role === 'host'`; `LoginModal` ahora redirige por rol (`host` → `/descubrir`, `student` → `/explorar`) en vez de mandar a todos a `/explorar`.
 - [ ] Pendiente: interceptor de 401 → `logout()` automático (no hay endpoint `/me` para validar el token al rehidratar).
 
 ---
@@ -84,7 +87,7 @@ Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/fronten
 
 - [ ] [[modulos/Asesorias]] — asesorías profesionales (pago por sesión).
 - [ ] Chat en tiempo real (SignalR): `Conversation`/`Message`, habilitado por `Match` (ver [[modulos/Match]]).
-- [ ] Pantalla de descubrimiento/swipe (nueva, sin diseñar todavía) para conectar `GET /api/match/feed` + `POST /api/match/like`.
+- [x] Pantalla de descubrimiento/swipe para `GET /api/match/feed` + `POST /api/match/like` → `DiscoverPage.tsx` (`/descubrir`), ver [[modulos/Match]].
 
 ---
 
@@ -94,7 +97,7 @@ Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/fronten
 - [ ] Estados de carga (Skeletons) reales.
 - [ ] Sistema de notificaciones (Toasts) para acciones clave.
 - [ ] Tipografía de marca: Playfair Display, Cormorant Garamond, Montserrat (hoy cae al stack por defecto de Tailwind).
-- [ ] Navegación mobile: bottom-nav para viewports `< md` (FloatingNav hoy oculto en mobile).
+- [x] Navegación mobile: `FloatingNav.tsx` ahora renderiza también una bottom-nav fija (ícono + label) para viewports `< md`, en vez de desaparecer — la barra circular original sigue igual en `md` y superior. Mismos `navItems` (Inicio según rol, Mensajes, Asesorías) en ambas versiones.
 - [ ] Evaluar unificación de FloatingNav con el sidebar del Dashboard.
 
 ---

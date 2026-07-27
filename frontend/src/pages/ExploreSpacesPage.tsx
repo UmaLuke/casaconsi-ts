@@ -1,16 +1,21 @@
 // src/pages/ExploreSpacesPage.tsx
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { MapPin, User, CheckCircle2, SlidersHorizontal, X } from 'lucide-react';
 import { Header } from '../components/layout/Header';
 import { Footer } from '../components/layout/Footer';
+import { SpaceDetailsModal } from '../components/features/spaces/SpaceDetailsModal';
+import { MatchDecisionButtons, type DecisionStatus } from '../components/features/spaces/MatchDecisionButtons';
 import { useSpaceFilters } from '../hooks/useSpaceFilters';
 import { useExchangeRate } from '../hooks/useExchangeRate';
+import { useAuth } from '../hooks/useAuth';
 import { getSpaces, SpaceError } from '../services/spaceService';
+import { registerLikeDecision, MatchError } from '../services/matchService';
 import type { Space } from '../types/space';
 import { GENERATION_LABELS, PURPOSE_LABELS, DURATION_LABELS, type Generation, type Purpose, type Duration } from '../types/filters';
 
 export const ExploreSpacesPage = () => {
   const { filters, updateFilter, clearFilters, activeFilterCount } = useSpaceFilters();
+  const { token } = useAuth();
 
   const { rate, isLoading } = useExchangeRate();
   const [preferredCurrency, setPreferredCurrency] = useState<'ARS' | 'USD'>('ARS');
@@ -18,6 +23,38 @@ export const ExploreSpacesPage = () => {
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [spacesLoading, setSpacesLoading] = useState(true);
   const [spacesError, setSpacesError] = useState<string | null>(null);
+
+  const [selectedSpace, setSelectedSpace] = useState<Space | null>(null);
+  const detailsModalRef = useRef<HTMLDialogElement>(null);
+
+  // Estado de la decisión (like/pass) por Space.id, compartido entre la
+  // card de la grilla y el modal de detalles para que queden sincronizados.
+  const [decisions, setDecisions] = useState<Record<string, DecisionStatus>>({});
+  const [decisionError, setDecisionError] = useState<string | null>(null);
+
+  const handleOpenDetails = (space: Space) => {
+    setSelectedSpace(space);
+    detailsModalRef.current?.showModal();
+  };
+
+  const handleDecide = async (space: Space, liked: boolean) => {
+    if (!token) {
+      setDecisionError('Iniciá sesión para marcar match o descartar un perfil.');
+      return;
+    }
+
+    setDecisionError(null);
+    setDecisions((prev) => ({ ...prev, [space.id]: 'loading' }));
+
+    try {
+      await registerLikeDecision(token, space.hostUserId, liked);
+      setDecisions((prev) => ({ ...prev, [space.id]: liked ? 'liked' : 'passed' }));
+      detailsModalRef.current?.close();
+    } catch (err) {
+      setDecisions((prev) => ({ ...prev, [space.id]: 'idle' }));
+      setDecisionError(err instanceof MatchError ? err.message : 'No se pudo registrar tu decisión. Probá de nuevo.');
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -256,14 +293,23 @@ export const ExploreSpacesPage = () => {
                         </div>
                         <div className="flex items-center gap-2 text-sm text-base-content/70">
                           <User className="size-4 shrink-0" />
-                          <span className="truncate">{space.hostType}</span>
+                          <span className="truncate">{space.hostName}</span>
                         </div>
                       </div>
                       <div className="card-actions justify-end mt-4">
-                        <button className="btn btn-primary btn-sm w-full text-white bg-brand-teal hover:bg-brand-teal/90 border-none">
+                        <button
+                          onClick={() => handleOpenDetails(space)}
+                          className="btn btn-primary btn-sm w-full text-white bg-brand-teal hover:bg-brand-teal/90 border-none"
+                        >
                           Ver detalles
                         </button>
                       </div>
+                      <MatchDecisionButtons
+                        status={decisions[space.id] ?? 'idle'}
+                        onReject={() => handleDecide(space, false)}
+                        onLike={() => handleDecide(space, true)}
+                        className="mt-3"
+                      />
                     </div>
                   </div>
                 ))}
@@ -280,6 +326,25 @@ export const ExploreSpacesPage = () => {
 
         </div>
       </main>
+
+      <SpaceDetailsModal
+        ref={detailsModalRef}
+        space={selectedSpace}
+        formatPrice={formatPrice}
+        decisionStatus={selectedSpace ? decisions[selectedSpace.id] ?? 'idle' : 'idle'}
+        onReject={(space) => handleDecide(space, false)}
+        onLike={(space) => handleDecide(space, true)}
+      />
+
+      {decisionError && (
+        <div className="toast toast-top toast-center z-50">
+          <div className="alert alert-error text-sm shadow-lg">
+            <span>{decisionError}</span>
+            <button onClick={() => setDecisionError(null)} className="btn btn-xs btn-circle btn-ghost" aria-label="Cerrar aviso">✕</button>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </div>
   );

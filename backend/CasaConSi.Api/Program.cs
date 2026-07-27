@@ -87,6 +87,20 @@ builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "App_Data", "keys")))
     .SetApplicationName("CasaConSi.Api");
 
+// wwwroot tiene que existir ANTES de builder.Build(): si no está en disco en
+// este momento, WebApplication resuelve WebRootFileProvider como un
+// NullFileProvider (loguea el warning "The WebRootPath was not found") y
+// UseStaticFiles() queda sirviendo 404 para SIEMPRE durante todo el ciclo de
+// vida del proceso — aunque después, en runtime, se creen carpetas/archivos
+// reales bajo wwwroot/uploads (fotos subidas por multipart, o las que copia
+// DemoProfileSeeder), el archivo físico existe pero el middleware nunca lo
+// encuentra porque ya fijó un proveedor nulo al arrancar. Por eso en un
+// ambiente nuevo (DB/wwwroot recién creados) las fotos daban 404 incluso
+// después de reiniciar: hacía falta un segundo reinicio con wwwroot ya
+// presente en disco. Creándolo acá, antes de Build(), se evita depender de
+// ese "segundo reinicio".
+Directory.CreateDirectory(Path.Combine(builder.Environment.ContentRootPath, "wwwroot"));
+
 var app = builder.Build();
 
 // Seed del rol Admin y del usuario admin (si hay credenciales en AdminSeed:* vía user-secrets).

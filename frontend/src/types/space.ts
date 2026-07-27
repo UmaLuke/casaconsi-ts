@@ -3,6 +3,8 @@ import type { Generation, Purpose, Duration } from './filters';
 
 export interface Space {
   id: string;
+  hostUserId: string;
+  hostName: string;
   title: string;
   location: string;
   /** Nombre corto y canónico del barrio/zona, usado para filtrar (distinto de `location`, que es descriptivo). */

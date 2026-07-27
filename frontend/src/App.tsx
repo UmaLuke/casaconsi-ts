@@ -8,6 +8,7 @@ import { RegisterPage } from './pages/auth/RegisterPage';
 import { AuthProvider } from './context/AuthContext';
 import { DashboardPage } from './pages/DashboardPage';
 import { ExploreSpacesPage } from './pages/ExploreSpacesPage';
+import { DiscoverPage } from './pages/DiscoverPage';
 import { MessagesPage } from './pages/MessagesPage';
 import { AdvisoryPage } from './pages/AdvisoryPage';
 import { StudentQuestionnairePage } from './pages/questionnaire/StudentQuestionnairePage';
@@ -46,6 +47,14 @@ export const App = () => {
             }
           />
           <Route path="/explorar" element={<ExploreSpacesPage />} />
+          <Route
+            path="/descubrir"
+            element={
+              <ProtectedRoute>
+                <DiscoverPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/mensajes" element={<MessagesPage />} />
           <Route path="/asesorias" element={<AdvisoryPage />} />
         </Routes>

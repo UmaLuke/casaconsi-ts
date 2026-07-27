@@ -2,7 +2,7 @@ tags: [modulo, backend]
 
 # Módulo: Match
 
-**Estado:** ✅ Backend del like mutuo implementado y migrado a `db_ccs`. Falta conectar el frontend (feed/carrusel de `MessagesPage.tsx`) a estos endpoints.
+**Estado:** ✅ Backend del like mutuo implementado y migrado a `db_ccs`. Los tres endpoints están conectados en el frontend: `GET /api/match` en `MessagesPage.tsx`, `POST /api/match/like` desde [[Space]] (`ExploreSpacesPage`/`SpaceDetailsModal`) y desde `DiscoverPage.tsx` (nuevo, swipe sobre `GET /api/match/feed`).
 
 ## Decisión: modelo de matching básico (gratis)
 Se definió que el match básico (el del modelo freemium gratuito, no confundir con el "Match asistido" pago del [[../glosario|glosario]]) funciona por **like mutuo, estilo Tinder**:
@@ -38,7 +38,14 @@ Si alguna de las dos partes todavía no completó el cuestionario (`Generation =
 
 ## Frontend
 - `MessagesPage.tsx`, sección "Match's": conectada a `GET /api/match` (matches confirmados) vía `matchService.ts` — carrusel horizontal con foto/nombre de la contraparte, estados de loading/error/vacío.
-- **No conectado todavía:** `GET /api/match/feed` y `POST /api/match/like` — no existe ninguna pantalla de swipe/descubrimiento en el frontend. Es una superficie de UI nueva a diseñar (ver Roadmap).
+- `matchService.registerLikeDecision(token, targetUserId, liked)`: pega a `POST /api/match/like`, devuelve `LikeResponse` (`isMatch`, `matchId`). Tiene dos consumidores:
+  - [[Space]] — `ExploreSpacesPage.tsx` manda `space.hostUserId` como `targetUserId` cuando el estudiante usa los botones ✕/✓ de `MatchDecisionButtons` (en la card o en `SpaceDetailsModal`). Ahí el contexto es "estoy mirando este Space puntual".
+  - `DiscoverPage.tsx` (nuevo, ver abajo) — mismo componente `MatchDecisionButtons`, pero sobre `currentItem.userId` del feed. Ahí el contexto es el swipe tipo Tinder clásico.
+  - En ambos casos, errores de negocio (generación igual, perfil incompleto, sin sesión) se muestran como toast/alert en la página, no bloquean la app.
+- `matchService.getFeed(token)` (nuevo): pega a `GET /api/match/feed`, devuelve `MatchFeedItem[]` (`userId`, `fullName`, `profilePhotoUrl`, `presentationMediaUrl`, `aboutMe`, `neighborhoods`).
+- `DiscoverPage.tsx` (nuevo, ruta `/descubrir`, dentro de `ProtectedRoute` sin `requireAdmin` — redirige a `/` si no hay sesión): pantalla de descubrimiento tipo swipe, un perfil a la vez (`queue[0]`). Al decidir (✕/✓), llama a `registerLikeDecision` y, si la request fue bien, saca el perfil de la cola (`queue.slice(1)`) y pasa al siguiente automáticamente — no hace falta mostrar el estado `liked`/`passed` de `MatchDecisionButtons` porque la card entera desaparece. Si `isMatch` es `true`, muestra un banner "¡Es un match con {nombre}!". `presentationMediaUrl` (video de presentación) todavía no se usa en esta pantalla — pendiente si se agrega.
+- Quién ve la pantalla: el backend resuelve el rol desde el JWT (Student ve Hosts, Host ve Students), el frontend no distingue. Hoy el nav del `Header` solo linkea `/descubrir` para `user.role === 'host'` ("Descubrir Perfiles"), y `LoginModal` redirige ahí después del login si el rol es Host (antes mandaba a todos, estudiantes y anfitriones, a `/explorar` — por eso Rosa Martínez veía la pantalla de Espacios en vez de perfiles de estudiantes). El estudiante en teoría también podría usarla directamente si navega a la ruta, pero su flujo principal sigue siendo `/explorar` (Espacios).
+- `FloatingNav.tsx` (el nav flotante circular a la izquierda): el ítem "Inicio" era un array estático (`NAV_ITEMS`) hardcodeado a `/explorar` para cualquier rol — quedó igual de desactualizado que `LoginModal` y por la misma razón. Ahora `navItems` se arma dentro del componente según `user.role` (`host` → `/descubrir`, si no → `/explorar`).
 
 ## ⚠️ Inconsistencia a revisar con el frontend
 La Fase 2 del Roadmap (frontend) describe `ApplicationsList.jsx` / `IncomingRequests.jsx` con estados "Pendiente / En Entrevista / Aceptada" — eso corresponde a un modelo de **solicitud/aplicación a un Space puntual**, no al like mutuo recién decidido. Falta confirmar si:

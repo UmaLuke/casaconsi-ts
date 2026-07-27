@@ -107,6 +107,8 @@ public class SpaceService : ISpaceService
         return new SpaceResponseDto
         {
             Id = space.Id,
+            HostUserId = space.HostUserId,
+            HostName = host.Name,
             Title = space.Title,
             Location = space.Location,
             Neighborhood = space.Neighborhood,
