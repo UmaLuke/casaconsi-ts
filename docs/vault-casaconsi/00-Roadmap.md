@@ -2,7 +2,7 @@ tags: [roadmap, casaconsi]
 
 # 🗺️ Roadmap — CASA con SI
 
-Estado general del proyecto. Última actualización manual: revisar fecha al editar.
+Estado general del proyecto. Última actualización: 2026-07-29 (Asesorías: alta de cuenta advisor funcionando end-to-end — `RegisterAdvisorPage` en `/register/asesor` + campo `Profession` persistido, ver [[decisiones/ADR-0003-rol-asesor]]).
 
 Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/frontend]]
 
@@ -63,6 +63,16 @@ Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/fronten
 - [x] `DiscoverPage.tsx` (ruta `/descubrir`, protegida): pantalla de swipe (un perfil a la vez) conectada a `GET /api/match/feed` + `POST /api/match/like` — ver [[modulos/Match]]. `Header` linkea "Descubrir Perfiles" solo para `role === 'host'`; `LoginModal` ahora redirige por rol (`host` → `/descubrir`, `student` → `/explorar`) en vez de mandar a todos a `/explorar`.
 - [ ] Pendiente: interceptor de 401 → `logout()` automático (no hay endpoint `/me` para validar el token al rehidratar).
 
+**Verificado 2026-07-27:** confirmado en `frontend/src/pages` que `RegisterPage`, `ProfilePage`, `SpaceDetailPage`, `MySpacesList`, `NewSpaceForm`, `IncomingRequests`/`ApplicationsList` no existen todavía (solo están: `LandingPage`, `DashboardPage`, `DiscoverPage`, `ExploreSpacesPage`, `MessagesPage`, `AdvisoryPage`, `auth/`, `questionnaire/`). `AdvisoryPage.tsx` existe como pantalla placeholder — el backend de Asesorías sigue en estado "No iniciado" ([[modulos/Asesorias]]).
+
+---
+
+## 🐞 Bugs / ajustes de UI reportados (QA 2026-07-27, mobile 375px)
+
+- [ ] `LandingPage`/`Header.tsx`: el botón "Registrarse" desaparece en viewport mobile — falta agregarlo al header mobile o al menú hamburguesa.
+- [ ] `MessagesPage.tsx`: la sección "Match's" debe reubicarse a la derecha del texto "Aquí podrás ver tus conexiones", dentro del recuadro de contenido (hoy las cards no ocupan ese espacio).
+- [ ] Dropdown de usuario (`Header.tsx`): agregar botón "Mi Perfil" — hoy el dropdown solo tiene "Cerrar Sesión". Depende de que exista `ProfilePage.jsx` (ver Fase 2, Módulo común).
+
 ---
 
 ## 📋 Fase 2 — Vistas específicas por rol (frontend, pendiente)
@@ -85,9 +95,15 @@ Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/fronten
 
 ## 🧱 Backend — módulos pendientes
 
-- [ ] [[modulos/Asesorias]] — asesorías profesionales (pago por sesión).
-- [ ] Chat en tiempo real (SignalR): `Conversation`/`Message`, habilitado por `Match` (ver [[modulos/Match]]).
+- [ ] [[modulos/Asesorias]] — en curso. ✅ Rol de asesor (`UserRole.Advisor`) y ✅ alta de cuenta (`RegisterAdvisorPage` en `/register/asesor`, campo `Profession` persistido vía migración `AddProfessionToApplicationUser`) — ver [[decisiones/ADR-0003-rol-asesor]]. Falta: agenda/reserva de sesión, pago asociado, conectar el listado de asesores de la landing (`Advisors.tsx`) a datos reales en vez de `mockAdvisors`, y vista de gestión del lado del asesor. Sigue pendiente el ajuste de `LoginModal.tsx` para el redirect post-login de `advisor`.
+- [ ] Chat en tiempo real (SignalR): `Conversation`/`Message`, habilitado por `Match` (ver [[modulos/Match]]). Incluye: crear el chat 1:1 en sí (mensajería) y la vista de lista de conversaciones múltiples en pantalla.
 - [x] Pantalla de descubrimiento/swipe para `GET /api/match/feed` + `POST /api/match/like` → `DiscoverPage.tsx` (`/descubrir`), ver [[modulos/Match]].
+
+---
+
+## 🔐 Módulo Admin (pendiente, no iniciado)
+
+- [ ] Panel/perfil admin en el frontend: hoy solo existe `AdminSeeder` + flag `IsAdmin` en el backend (ver `memory`/[[modulos/Auth]]), no hay pantalla ni rutas de administración. Falta definir alcance (gestión de usuarios, moderación de Spaces, aprobación de perfiles, etc.) antes de construir.
 
 ---
 

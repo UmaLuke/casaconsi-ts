@@ -7,10 +7,11 @@ namespace CasaConSi.Api.Models.Enums;
 public enum UserRole
 {
     Host,
-    Student
+    Student,
+    Advisor
 }
 
-// Serializa a los mismos strings que usa el frontend (role: 'host' | 'student')
+// Serializa a los mismos strings que usa el frontend (role: 'host' | 'student' | 'advisor')
 public class UserRoleJsonConverter : JsonConverter<UserRole>
 {
     public override UserRole Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -20,6 +21,7 @@ public class UserRoleJsonConverter : JsonConverter<UserRole>
         {
             "host" => UserRole.Host,
             "student" => UserRole.Student,
+            "advisor" => UserRole.Advisor,
             _ => throw new JsonException($"Valor de UserRole no reconocido: {value}")
         };
     }
@@ -30,6 +32,7 @@ public class UserRoleJsonConverter : JsonConverter<UserRole>
         {
             UserRole.Host => "host",
             UserRole.Student => "student",
+            UserRole.Advisor => "advisor",
             _ => throw new JsonException($"UserRole no soportado: {value}")
         });
     }

@@ -11,4 +11,5 @@ public class ApplicationUser : IdentityUser
     public string? Title { get; set; }
     // Se completa después, en el cuestionario post-registro — no viaja en RegisterRequestDto
     public Generation? Generation { get; set; }
+    public string? Profession { get; set; }
 }

@@ -13,7 +13,7 @@ import { MessagesPage } from './pages/MessagesPage';
 import { AdvisoryPage } from './pages/AdvisoryPage';
 import { StudentQuestionnairePage } from './pages/questionnaire/StudentQuestionnairePage';
 import { HostQuestionnairePage } from './pages/questionnaire/HostQuestionnairePage';
-
+import {RegisterAdvisorPage} from './pages/auth/RegisterAdvisorPage';
 
 const LandingPageLayout = () => {
   return (
@@ -36,6 +36,7 @@ export const App = () => {
           <Route path="/" element={<LandingPageLayout />} />
           
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/register/asesor" element={<RegisterAdvisorPage />} />
           <Route path="/cuestionario/buscar" element={<StudentQuestionnairePage />} />
           <Route path="/cuestionario/ofrecer" element={<HostQuestionnairePage />} />
           <Route

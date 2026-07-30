@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "datos-demo.md",
+                "file": "modulos/Asesorias.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "datos-demo"
+              "title": "Asesorias"
             }
           }
         ]
@@ -171,13 +171,22 @@
   },
   "active": "c2fcd6f48599874f",
   "lastOpenFiles": [
-    "modulos/Perfiles.md",
-    "datos-demo.md",
+    "decisiones/ADR-0001-arquitectura-single-project.md",
+    "00-Roadmap.md.tmp.20216.139e5834ec5a",
+    "00-Roadmap.md.tmp.20216.c46d1c006914",
+    "decisiones/ADR-0003-rol-asesor.md",
+    "decisiones/ADR-0003-rol-asesor.md.tmp.20216.1d0e131d393c",
+    "glosario.md",
     "00-Roadmap.md",
+    "datos-demo.md",
+    "00-Roadmap.md.tmp.23312.cf22ad32ac1b",
+    "00-Roadmap.md.tmp.23312.bc1df39c3b94",
+    "00-Roadmap.md.tmp.5976.e556894af878",
+    "00-Roadmap.md.tmp.5976.8cb5627a93c1",
+    "modulos/Perfiles.md",
     "modulos/Match.md.tmp.19596.43903218285c",
     "00-Roadmap.md.tmp.16728.2da50311f3e6",
     "00-Roadmap.md.tmp.16728.29cb96deadd6",
-    "convenciones/backend.md",
-    "glosario.md"
+    "convenciones/backend.md"
   ]
 }

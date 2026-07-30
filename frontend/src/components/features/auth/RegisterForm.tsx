@@ -1,12 +1,14 @@
 // src/components/features/auth/RegisterForm.tsx
 import { useState, type FormEvent } from 'react';
 import { Mail, Lock, User, Loader2, Home, GraduationCap } from 'lucide-react';
+import type {UserRole} from '../../../types/auth';
 
 export interface RegisterFormData {
   name: string;
   email: string;
   password: string;
-  role: 'host' | 'student';
+  role: UserRole;
+  profession?: string;
 }
 
 interface RegisterFormProps {

@@ -17,4 +17,7 @@ public record RegisterRequestDto
 
     [Required]
     public required UserRole Role { get; init; }
+
+    [MaxLength(120)]
+    public string? Profession { get; init; }
 }

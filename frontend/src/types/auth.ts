@@ -1,6 +1,6 @@
 import type { Generation } from "./filters";
 
-export type UserRole = 'host' | 'student';
+export type UserRole = 'host' | 'student' | 'advisor'; // nuevo
 
 export interface User {
   id: string;
@@ -9,8 +9,9 @@ export interface User {
   role: UserRole;
   avatar?: string;
   title?: string;
+  profession?: string; 
   generation?: Generation;
-  isAdmin: boolean; // nuevo
+  isAdmin: boolean; 
 }
 
 export interface AuthContextValue {

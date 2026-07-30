@@ -32,6 +32,7 @@ public class AuthService : IAuthService
             Email = request.Email,
             Name = request.Name,
             Role = request.Role,
+            Profession = request.Profession
         };
 
         var result = await _userManager.CreateAsync(user, request.Password);
@@ -68,6 +69,7 @@ public class AuthService : IAuthService
             Role = user.Role,
             Avatar = user.Avatar,
             Title = user.Title,
+            Profession = user.Profession,
             Generation = user.Generation,
             IsAdmin = isAdmin,
             Token = token,

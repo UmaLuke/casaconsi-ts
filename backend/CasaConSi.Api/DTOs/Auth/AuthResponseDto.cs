@@ -11,6 +11,7 @@ public record AuthResponseDto
     public required UserRole Role { get; init; }
     public string? Avatar { get; init; }
     public string? Title { get; init; }
+    public string? Profession { get; init; }
     public Generation? Generation { get; init; }
      public required bool IsAdmin { get; init; }
     public required string Token { get; init; }

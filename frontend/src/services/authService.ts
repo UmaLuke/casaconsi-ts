@@ -18,6 +18,7 @@ interface AuthResponseDto {
   role: User['role'];
   avatar: string | null;
   title: string | null;
+  profession: string | null;
   generation: User['generation'] | null;
   isAdmin: boolean; // nuevo
   token: string;
@@ -34,6 +35,7 @@ const toAuthResult = (dto: AuthResponseDto): AuthResult => ({
     role: dto.role,
     avatar: dto.avatar ?? undefined,
     title: dto.title ?? undefined,
+    profession: dto.profession ?? undefined,
     generation: dto.generation ?? undefined,
     isAdmin: dto.isAdmin, // nuevo
   },
