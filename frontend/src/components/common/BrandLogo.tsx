@@ -3,9 +3,9 @@
 export const BrandLogo = () => {
   return (
     <div className="flex items-center hover:opacity-90 transition-opacity">
-      <img 
-        src="/logo1.png" 
-        alt="Logo Casa con SI" 
+      <img
+        src="/logo-icon.svg"
+        alt="Logo Casa con SI"
         /* Usamos h-14 en móviles y h-16 en escritorio para que encaje perfecto en el Header */
         className="h-14 md:h-2.5rem w-auto object-contain"
       />

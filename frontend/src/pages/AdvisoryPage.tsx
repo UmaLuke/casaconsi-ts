@@ -7,7 +7,7 @@ export const AdvisoryPage = () => {
   return (
     <div data-theme="light" className="flex flex-col min-h-screen bg-white">
       <Header />
-      <main className="grow pt-28 md:pt-32 pb-20">
+      <main className="grow pt-28 md:pt-32 pb-20 md:pl-24">
         <div className="container mx-auto px-4 md:px-6">
           <div className="mb-10 space-y-2">
             <h1 className="text-3xl md:text-4xl font-extrabold text-base-content tracking-tight">

@@ -18,6 +18,6 @@ export interface AuthContextValue {
   user: User | null;
   token: string | null;
   isLoading: boolean; // true mientras se rehidrata la sesión desde localStorage al montar la app
-  login: (userData: User, token: string) => void;
+  login: (userData: User, token: string, expiresAt: string) => void;
   logout: () => void;
 }

@@ -17,11 +17,11 @@ export const RegisterPage = () => {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const { user, token } = await registerRequest(userData);
+      const { user, token, expiresAt } = await registerRequest(userData);
 
       // Dejamos a la persona autenticada y la mandamos a completar
       // el cuestionario obligatorio de su rol.
-      login(user, token);
+      login(user, token, expiresAt);
       navigate(user.role === 'host' ? '/cuestionario/ofrecer' : '/cuestionario/buscar');
     } catch (error) {
       const message = error instanceof AuthError

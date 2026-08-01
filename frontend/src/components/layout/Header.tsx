@@ -30,21 +30,25 @@ export const Header = () => {
     modal?.showModal();
   };
 
+  // Landing: transparente hasta hacer scroll. Cualquier otra página interna
+  // (Explorar, Descubrir, Mensajes, Asesorías, Dashboard, etc.) usa el mismo
+  // teal de marca.
   let headerBgClass = '';
 
   if (location.pathname === '/') {
-    headerBgClass = isScrolled 
-      ? 'bg-brand-teal backdrop-blur-md shadow-sm' 
+    headerBgClass = isScrolled
+      ? 'bg-brand-teal backdrop-blur-md shadow-sm'
       : 'bg-transparent';
-  } else if (location.pathname === '/explorar') {
-    headerBgClass = 'bg-brand-teal backdrop-blur-md shadow-sm border-b border-brand-teal/20'; 
   } else {
-    headerBgClass = 'bg-brand-navy shadow-sm';
+    headerBgClass = 'bg-brand-teal backdrop-blur-md shadow-sm border-b border-brand-teal/20';
   }
 
   return (
-    <header className={`fixed top-0 w-full z-50 text-white transition-all duration-300 py-2 md:py-3 ${headerBgClass}`}>
-      <div className="container mx-auto navbar px-4 md:px-7">
+    <header className={`fixed top-0 w-full z-50 text-white transition-all duration-300 py-2.5 md:py-3 ${headerBgClass}`}>
+      {/* !min-h-0 !py-0 pisan el min-height (4rem) y el padding vertical que
+          trae por defecto .navbar de DaisyUI — así la franja se achica al
+          tamaño real del contenido (el logo) en vez de un piso fijo de 64px. */}
+      <div className="container mx-auto navbar !min-h-0 !py-0 px-4 md:px-7">
         
         {/* --- NAVBAR MOBILE Y LOGO --- */}
         <div className="navbar-start">

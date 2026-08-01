@@ -18,8 +18,8 @@ export const RegisterAdvisorPage = () => {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const { user, token } = await registerRequest(userData);
-      login(user, token);
+      const { user, token, expiresAt } = await registerRequest(userData);
+      login(user, token, expiresAt);
       // Los advisor no tienen cuestionario post-registro (todavía) — los
       // mandamos directo a /asesorias.
       navigate('/asesorias');

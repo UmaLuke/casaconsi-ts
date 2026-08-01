@@ -35,7 +35,7 @@ export const MatchDecisionButtons = ({ status, onReject, onLike, className = '' 
   const isLoading = status === 'loading';
 
   return (
-    <div className={`flex items-center justify-center gap-3 ${className}`}>
+    <div className={`flex items-center justify-center gap-9 ${className}`}>
       <button
         type="button"
         onClick={onReject}

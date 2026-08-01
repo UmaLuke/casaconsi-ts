@@ -2,7 +2,7 @@ tags: [roadmap, casaconsi]
 
 # 🗺️ Roadmap — CASA con SI
 
-Estado general del proyecto. Última actualización: 2026-07-29 (Asesorías: alta de cuenta advisor funcionando end-to-end — `RegisterAdvisorPage` en `/register/asesor` + campo `Profession` persistido, ver [[decisiones/ADR-0003-rol-asesor]]).
+Estado general del proyecto. Última actualización: 2026-07-30 (Fix visual: `FloatingNav.tsx` tapaba contenido en 4 páginas — ver sección Bugs/ajustes de UI abajo).
 
 Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/frontend]]
 
@@ -69,6 +69,7 @@ Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/fronten
 
 ## 🐞 Bugs / ajustes de UI reportados (QA 2026-07-27, mobile 375px)
 
+- [x] **(2026-07-30)** `FloatingNav.tsx`: la barra circular flotante (desktop/tablet, `fixed left-4`, ~62px de ancho) tapaba el contenido de las páginas que no reservaban espacio para ella — reportado sobre `MessagesPage` (cards de "Match's" cortadas), pero el mismo `<main>` se repite igual en `AdvisoryPage`, `DiscoverPage` y `ExploreSpacesPage` (ambos roles). Fix: agregado `md:pl-24` al `<main className="grow pt-28 md:pt-32 pb-20">` de las 4 páginas para reservar espacio a la izquierda solo en viewports `md+` (donde el nav flotante circular se muestra; en mobile es bottom-nav y no aplica).
 - [ ] `LandingPage`/`Header.tsx`: el botón "Registrarse" desaparece en viewport mobile — falta agregarlo al header mobile o al menú hamburguesa.
 - [ ] `MessagesPage.tsx`: la sección "Match's" debe reubicarse a la derecha del texto "Aquí podrás ver tus conexiones", dentro del recuadro de contenido (hoy las cards no ocupan ese espacio).
 - [ ] Dropdown de usuario (`Header.tsx`): agregar botón "Mi Perfil" — hoy el dropdown solo tiene "Cerrar Sesión". Depende de que exista `ProfilePage.jsx` (ver Fase 2, Módulo común).

@@ -15,8 +15,8 @@ export const LoginModal = () => {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const { user, token } = await loginRequest(credentials);
-      login(user, token);
+      const { user, token, expiresAt} = await loginRequest(credentials);
+      login(user, token, expiresAt);
 
       const modal = document.getElementById('login_modal') as HTMLDialogElement | null;
       if (modal) {

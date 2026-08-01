@@ -1,6 +1,6 @@
 // src/pages/ExploreSpacesPage.tsx
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { MapPin, User, CheckCircle2, SlidersHorizontal, X } from 'lucide-react';
+import { MapPin, User, CheckCircle2, SlidersHorizontal, X, LayoutGrid, UserRound } from 'lucide-react';
 import { Header } from '../components/layout/Header';
 import { Footer } from '../components/layout/Footer';
 import { SpaceDetailsModal } from '../components/features/spaces/SpaceDetailsModal';
@@ -19,6 +19,13 @@ export const ExploreSpacesPage = () => {
 
   const { rate, isLoading } = useExchangeRate();
   const [preferredCurrency, setPreferredCurrency] = useState<'ARS' | 'USD'>('ARS');
+
+  // Vista de demo para el cliente: "grid" es la grilla de cards actual,
+  // "profile" reutiliza el estilo de card grande de DiscoverPage, al estilo
+  // Tinder: un solo espacio a la vez, sin botón para "pasar" sin decidir —
+  // la única forma de avanzar es marcando like (✓) o pass (✕).
+  const [viewMode, setViewMode] = useState<'grid' | 'profile'>('grid');
+  const [swipedIds, setSwipedIds] = useState<Set<string>>(new Set());
 
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [spacesLoading, setSpacesLoading] = useState(true);
@@ -49,6 +56,10 @@ export const ExploreSpacesPage = () => {
     try {
       await registerLikeDecision(token, space.hostUserId, liked);
       setDecisions((prev) => ({ ...prev, [space.id]: liked ? 'liked' : 'passed' }));
+      // En la vista "Perfil" esto hace que el siguiente espacio de la cola
+      // ocupe el lugar automáticamente (no afecta a la grilla, que sigue
+      // mostrando todos los espacios con su badge de decisión).
+      setSwipedIds((prev) => new Set(prev).add(space.id));
       detailsModalRef.current?.close();
     } catch (err) {
       setDecisions((prev) => ({ ...prev, [space.id]: 'idle' }));
@@ -87,6 +98,14 @@ export const ExploreSpacesPage = () => {
     });
   }, [filters, spaces]);
 
+  // Cola de la vista "Perfil": los espacios ya decididos (like o pass) se
+  // sacan de encima; el primero que queda es el que se muestra.
+  const profileQueue = useMemo(
+    () => filteredSpaces.filter((space) => !swipedIds.has(space.id)),
+    [filteredSpaces, swipedIds],
+  );
+  const currentProfileSpace = profileQueue[0] ?? null;
+
   const formatPrice = (basePrice: number, baseCurrency: 'ARS' | 'USD') => {
     let finalPrice = basePrice;
 
@@ -106,16 +125,44 @@ export const ExploreSpacesPage = () => {
   return (
     <div data-theme="light" className="flex flex-col min-h-screen bg-white">
       <Header />
-      <main className="grow pt-28 md:pt-32 pb-20">
+      <main className="grow pt-28 md:pt-32 pb-20 md:pl-24">
         <div className="container mx-auto px-4 md:px-6">
 
-          <div className="mb-10 space-y-2">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-base-content tracking-tight">
-              Explorar Espacios
-            </h1>
-            <p className="text-base-content/70 text-lg max-w-2xl font-medium">
-              Encuentra el espacio ideal. Los filtros se adaptan automáticamente para ofrecerte las mejores opciones de convivencia.
-            </p>
+          <div className="mb-10 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="space-y-2">
+              <h1 className="text-3xl md:text-4xl font-extrabold text-base-content tracking-tight">
+                Explorar Espacios
+              </h1>
+              <p className="text-base-content/70 text-lg max-w-2xl font-medium">
+                Encuentra el espacio ideal. Los filtros se adaptan automáticamente para ofrecerte las mejores opciones de convivencia.
+              </p>
+            </div>
+
+            {/* Toggle de demo: permite mostrarle al cliente ambas versiones sin tocar código. */}
+            <div className="join border border-base-300 rounded-full p-0.5 bg-base-100 shrink-0 self-start" role="group" aria-label="Cambiar vista de espacios">
+              <button
+                type="button"
+                onClick={() => setViewMode('grid')}
+                aria-pressed={viewMode === 'grid'}
+                className={`btn btn-xs join-item rounded-full gap-1.5 border-none ${
+                  viewMode === 'grid' ? 'bg-brand-teal text-white' : 'btn-ghost text-base-content/60'
+                }`}
+              >
+                <LayoutGrid className="size-3.5" />
+                Cuadrícula
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('profile')}
+                aria-pressed={viewMode === 'profile'}
+                className={`btn btn-xs join-item rounded-full gap-1.5 border-none ${
+                  viewMode === 'profile' ? 'bg-brand-teal text-white' : 'btn-ghost text-base-content/60'
+                }`}
+              >
+                <UserRound className="size-3.5" />
+                Perfil
+              </button>
+            </div>
           </div>
 
           <div className="collapse collapse-arrow bg-base-100 shadow-sm border border-base-200 mb-8 overflow-visible">
@@ -264,12 +311,66 @@ export const ExploreSpacesPage = () => {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredSpaces.map((space) => (
-                  <div key={space.id} className="card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-shadow group flex flex-col">
-                    <figure className="relative aspect-4/3 overflow-hidden">
-                      <img src={space.imageUrl} alt={space.title} className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
-                      {space.verified && (
+              {viewMode === 'grid' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {filteredSpaces.map((space) => (
+                    <div key={space.id} className="card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-shadow group flex flex-col">
+                      <figure className="relative aspect-4/3 overflow-hidden">
+                        <img src={space.imageUrl} alt={space.title} className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
+                        {space.verified && (
+                          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                            <CheckCircle2 className="size-4 text-brand-teal" />
+                            <span className="text-xs font-bold text-base-content">Verificado</span>
+                          </div>
+                        )}
+                        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur px-2.5 py-1 rounded-full shadow-sm">
+                          <span className="text-sm font-black text-brand-teal">
+                            {isLoading ? '...' : formatPrice(space.price, space.currency)}
+                          </span>
+                          <span className="text-xs font-medium text-base-content/60 ml-1">/mes</span>
+                        </div>
+                      </figure>
+                      <div className="card-body p-6 grow flex flex-col">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h3 className="card-title text-lg leading-tight group-hover:text-brand-teal transition-colors">{space.title}</h3>
+                        </div>
+                        <div className="space-y-2 mt-auto pt-4 border-t border-base-100">
+                          <div className="flex items-center gap-2 text-sm text-base-content/70">
+                            <MapPin className="size-4 shrink-0" />
+                            <span className="truncate">{space.neighborhood}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-base-content/70">
+                            <User className="size-4 shrink-0" />
+                            <span className="truncate">{space.hostName}</span>
+                          </div>
+                        </div>
+                        <div className="card-actions justify-end mt-4">
+                          <button
+                            onClick={() => handleOpenDetails(space)}
+                            className="btn btn-primary btn-sm w-full text-white bg-brand-teal hover:bg-brand-teal/90 border-none"
+                          >
+                            Ver detalles
+                          </button>
+                        </div>
+                        <MatchDecisionButtons
+                          status={decisions[space.id] ?? 'idle'}
+                          onReject={() => handleDecide(space, false)}
+                          onLike={() => handleDecide(space, true)}
+                          className="mt-3"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : currentProfileSpace ? (
+                /* Vista "Perfil": estilo Tinder — un solo espacio a la vez, mismo
+                   look de card grande que DiscoverPage. Sin botón para "pasar";
+                   la única salida es decidir like (✓) o pass (✕). */
+                <div className="max-w-xl mx-auto">
+                  <div className="card bg-base-100 shadow-lg border border-base-200 overflow-hidden">
+                    <figure className="relative h-80 w-full overflow-hidden bg-base-200">
+                      <img src={currentProfileSpace.imageUrl} alt={currentProfileSpace.title} className="w-full h-full object-cover" />
+                      {currentProfileSpace.verified && (
                         <div className="absolute top-3 left-3 bg-white/90 backdrop-blur px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
                           <CheckCircle2 className="size-4 text-brand-teal" />
                           <span className="text-xs font-bold text-base-content">Verificado</span>
@@ -277,43 +378,62 @@ export const ExploreSpacesPage = () => {
                       )}
                       <div className="absolute top-3 right-3 bg-white/90 backdrop-blur px-2.5 py-1 rounded-full shadow-sm">
                         <span className="text-sm font-black text-brand-teal">
-                          {isLoading ? '...' : formatPrice(space.price, space.currency)}
+                          {isLoading ? '...' : formatPrice(currentProfileSpace.price, currentProfileSpace.currency)}
                         </span>
                         <span className="text-xs font-medium text-base-content/60 ml-1">/mes</span>
                       </div>
                     </figure>
-                    <div className="card-body p-6 grow flex flex-col">
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <h3 className="card-title text-lg leading-tight group-hover:text-brand-teal transition-colors">{space.title}</h3>
+
+                    <div className="card-body p-6 sm:p-8 space-y-4">
+                      <h2 className="font-extrabold text-2xl text-base-content tracking-tight">
+                        {currentProfileSpace.title}
+                      </h2>
+
+                      <div className="flex items-center gap-2 text-sm text-base-content/70">
+                        <User className="size-4 shrink-0" />
+                        <span className="truncate">Anfitrión: {currentProfileSpace.hostName}</span>
                       </div>
-                      <div className="space-y-2 mt-auto pt-4 border-t border-base-100">
-                        <div className="flex items-center gap-2 text-sm text-base-content/70">
-                          <MapPin className="size-4 shrink-0" />
-                          <span className="truncate">{space.neighborhood}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-base-content/70">
-                          <User className="size-4 shrink-0" />
-                          <span className="truncate">{space.hostName}</span>
-                        </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        <span className="badge badge-outline border-brand-teal/50 text-brand-teal bg-brand-teal/5 font-medium gap-1">
+                          <MapPin className="size-3" />
+                          {currentProfileSpace.neighborhood}
+                        </span>
+                        <span className="badge badge-outline border-base-300 text-base-content/70 font-medium">
+                          {PURPOSE_LABELS[currentProfileSpace.purpose]}
+                        </span>
+                        <span className="badge badge-outline border-base-300 text-base-content/70 font-medium">
+                          {DURATION_LABELS[currentProfileSpace.duration]}
+                        </span>
                       </div>
-                      <div className="card-actions justify-end mt-4">
+
+                      <div className="pt-4 border-t border-base-200 space-y-3">
                         <button
-                          onClick={() => handleOpenDetails(space)}
+                          onClick={() => handleOpenDetails(currentProfileSpace)}
                           className="btn btn-primary btn-sm w-full text-white bg-brand-teal hover:bg-brand-teal/90 border-none"
                         >
                           Ver detalles
                         </button>
+                        <MatchDecisionButtons
+                          status={decisions[currentProfileSpace.id] ?? 'idle'}
+                          onReject={() => handleDecide(currentProfileSpace, false)}
+                          onLike={() => handleDecide(currentProfileSpace, true)}
+                        />
                       </div>
-                      <MatchDecisionButtons
-                        status={decisions[space.id] ?? 'idle'}
-                        onReject={() => handleDecide(space, false)}
-                        onLike={() => handleDecide(space, true)}
-                        className="mt-3"
-                      />
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ) : filteredSpaces.length > 0 ? (
+                <div className="max-w-xl mx-auto text-center py-16 px-4 border-2 border-dashed border-base-300 rounded-2xl">
+                  <UserRound className="size-10 mx-auto text-base-content/30 mb-4" />
+                  <p className="text-lg font-medium text-base-content/60">
+                    Ya viste todos los espacios disponibles.
+                  </p>
+                  <button onClick={() => setSwipedIds(new Set())} className="btn btn-outline btn-sm mt-4">
+                    Volver a empezar
+                  </button>
+                </div>
+              ) : null}
 
               {filteredSpaces.length === 0 && (
                 <div className="text-center py-16 px-4 border-2 border-dashed border-base-300 rounded-2xl mt-6">
