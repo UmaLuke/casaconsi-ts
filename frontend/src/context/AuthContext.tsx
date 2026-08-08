@@ -1,5 +1,6 @@
 // src/context/AuthContext.tsx
 import { useState, useEffect, useRef, type ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from './auth-context';
 import type { User } from '../types/auth';
 
@@ -20,7 +21,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const logoutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navigate = useNavigate();
 
+  // Único punto de salida: se usa tanto para el botón "Cerrar Sesión" del
+  // Header como para el logout automático (token vencido, al montar o en
+  // caliente). Siempre manda a la landing, así ninguna pantalla se queda
+  // "logueada visualmente" mostrando contenido de una sesión ya inválida.
   const logout = () => {
     if (logoutTimerRef.current) {
       clearTimeout(logoutTimerRef.current);
@@ -29,6 +35,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setUser(null);
     setToken(null);
     localStorage.removeItem(STORAGE_KEY);
+    navigate('/', { replace: true });
   };
 
   // Programa un logout automático para el momento exacto en que vence el
@@ -83,8 +90,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     scheduleAutoLogout(expiresAt);
   };
 
+  // Usado por "Mi perfil" tras guardar cambios de cuenta (nombre, avatar,
+  // email): pisa el user en memoria y en localStorage, pero conserva el
+  // token/expiresAt vigentes — no es un re-login, así que no reprograma el
+  // auto-logout.
+  const updateUser = (userData: User) => {
+    setUser(userData);
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      try {
+        const stored: StoredAuth = JSON.parse(raw);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...stored, user: userData }));
+      } catch {
+        // Si el localStorage está corrupto, no hay nada más que hacer acá —
+        // el estado en memoria (setUser arriba) ya quedó actualizado.
+      }
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

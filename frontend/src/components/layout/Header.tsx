@@ -1,20 +1,21 @@
 // src/components/layout/Header.tsx
 import { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import { BrandLogo } from '../common/BrandLogo';
 import { LoginModal } from '../features/auth/LoginModal';
 import { useAuth } from '../../hooks/useAuth';
+import { resolveAvatarUrl } from '../../utils/avatar';
 
 export const Header = () => {
   const { user, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
   const location = useLocation();
-  const navigate = useNavigate();
 
+  // logout() ya redirige a la landing (ver AuthContext) — no hace falta
+  // navegar acá.
   const handleLogout = () => {
     logout();
-    navigate('/');
   };
 
   useEffect(() => {
@@ -98,7 +99,7 @@ export const Header = () => {
             <div className="dropdown dropdown-end">
               <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar transition-transform hover:scale-105" aria-label="Menú de usuario">
                 <div className="w-9 sm:w-10 rounded-full ring ring-brand-teal ring-offset-transparent ring-offset-2">
-                  <img src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`} alt={`Avatar de ${user.name}`} />
+                  <img src={resolveAvatarUrl(user.avatar, user.name)} alt={`Avatar de ${user.name}`} />
                 </div>
               </div>
               <ul tabIndex={0} className="mt-3 z-1 p-2 shadow-lg menu menu-sm dropdown-content bg-base-100 rounded-box w-52 text-base-content border border-base-200">
@@ -106,6 +107,7 @@ export const Header = () => {
                   <span className="font-bold text-base-content text-sm block truncate">{user.name}</span>
                   <span className="text-xs font-normal text-base-content/60 capitalize block">{user.title ?? user.role}</span>
                 </li>
+                <li><Link to="/mi-perfil" className="font-medium hover:text-brand-teal transition-colors">Mi perfil</Link></li>
                 {user.isAdmin && (
                   <li><Link to="/dashboard" className="font-medium hover:text-brand-teal transition-colors">Ir a mi Panel</Link></li>
                 )}

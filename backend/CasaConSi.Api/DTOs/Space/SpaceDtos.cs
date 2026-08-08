@@ -21,6 +21,13 @@ public record SpaceResponseDto
     public required string Duration { get; init; }
     public required List<string> Amenities { get; init; }
     public string? ImageUrl { get; init; }
+    // Para el carrusel del modal de detalle: fotos propias del Space
+    // (PhotoPaths) si el anfitrión subió alguna; si no, cae a las fotos
+    // generales de su HostProfile (HomePhotoPaths); si tampoco hay, cae al
+    // ExternalImageUrl de seed. ImageUrl arriba es siempre PhotoUrls[0] (o
+    // null si la lista queda vacía) — se mantiene por compatibilidad con la
+    // card de la grilla, que solo necesita una miniatura.
+    public required List<string> PhotoUrls { get; init; }
     public required bool Verified { get; init; }
 }
 

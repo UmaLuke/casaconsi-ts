@@ -1,6 +1,6 @@
 // src/components/features/spaces/SpaceDetailsModal.tsx
-import { forwardRef } from 'react';
-import { MapPin, User, CheckCircle2, Clock, Target } from 'lucide-react';
+import { forwardRef, useEffect, useState } from 'react';
+import { ChevronLeft, ChevronRight, MapPin, User, CheckCircle2, Clock, Target } from 'lucide-react';
 import type { Space } from '../../../types/space';
 import { GENERATION_LABELS, PURPOSE_LABELS, DURATION_LABELS } from '../../../types/filters';
 import { MatchDecisionButtons, type DecisionStatus } from './MatchDecisionButtons';
@@ -18,17 +18,71 @@ interface SpaceDetailsModalProps {
 // siguiendo el mismo patrón <dialog> nativo + DaisyUI que LoginModal.
 export const SpaceDetailsModal = forwardRef<HTMLDialogElement, SpaceDetailsModalProps>(
   ({ space, formatPrice, decisionStatus, onReject, onLike }, ref) => {
+    const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+
+    // El modal queda siempre montado y se reutiliza para cualquier space que
+    // se abra (ver comentario debajo) — hay que resetear el índice del
+    // carrusel cada vez que cambia el space, si no arranca en la última foto
+    // que se haya visto de otro anuncio.
+    useEffect(() => {
+      setCurrentPhotoIndex(0);
+    }, [space?.id]);
+
     return (
       <dialog ref={ref} id="space_details_modal" className="modal modal-bottom sm:modal-middle">
         <div className="modal-box p-0 bg-base-100 shadow-2xl max-w-2xl max-h-[90vh] overflow-y-auto">
           {space && (
             <>
-              <div className="relative h-64 w-full overflow-hidden rounded-t-2xl">
-                <img
-                  src={space.imageUrl}
-                  alt={space.title}
-                  className="w-full h-full object-cover"
-                />
+              <div className="relative h-64 w-full overflow-hidden rounded-t-2xl bg-base-300">
+                {space.photoUrls.map((url, index) => (
+                  <img
+                    key={`${url}-${index}`}
+                    src={url}
+                    alt={`${space.title} — foto ${index + 1} de ${space.photoUrls.length}`}
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
+                      index === currentPhotoIndex ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  />
+                ))}
+
+                {space.photoUrls.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCurrentPhotoIndex((i) => (i === 0 ? space.photoUrls.length - 1 : i - 1))
+                      }
+                      aria-label="Foto anterior"
+                      className="btn btn-circle btn-sm absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white border-none text-base-content shadow-sm"
+                    >
+                      <ChevronLeft className="size-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCurrentPhotoIndex((i) => (i === space.photoUrls.length - 1 ? 0 : i + 1))
+                      }
+                      aria-label="Foto siguiente"
+                      className="btn btn-circle btn-sm absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white border-none text-base-content shadow-sm"
+                    >
+                      <ChevronRight className="size-4" />
+                    </button>
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+                      {space.photoUrls.map((_, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => setCurrentPhotoIndex(index)}
+                          aria-label={`Ir a la foto ${index + 1}`}
+                          className={`rounded-full transition-all ${
+                            index === currentPhotoIndex ? 'size-2 bg-white' : 'size-1.5 bg-white/50'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+
                 <form method="dialog">
                   <button
                     className="btn btn-sm btn-circle absolute top-3 right-3 bg-white/90 hover:bg-white border-none text-base-content shadow-sm"
@@ -43,7 +97,7 @@ export const SpaceDetailsModal = forwardRef<HTMLDialogElement, SpaceDetailsModal
                     <span className="text-xs font-bold text-base-content">Verificado</span>
                   </div>
                 )}
-                <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur px-3 py-1.5 rounded-full shadow-sm">
+                <div className="absolute top-3 right-14 bg-white/90 backdrop-blur px-3 py-1.5 rounded-full shadow-sm">
                   <span className="text-base font-black text-brand-teal">
                     {formatPrice(space.price, space.currency)}
                   </span>

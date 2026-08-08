@@ -16,6 +16,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ProfileLike> ProfileLikes => Set<ProfileLike>();
     public DbSet<Match> Matches => Set<Match>();
     public DbSet<Space> Spaces => Set<Space>();
+    public DbSet<ProfileVerification> ProfileVerifications => Set<ProfileVerification>();
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -95,5 +96,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .HasForeignKey(s => s.HostUserId)
                 .OnDelete(DeleteBehavior.Cascade);
        });
+       builder.Entity<ProfileVerification>(entity =>
+        {
+            entity.HasIndex(v => v.UserId).IsUnique();
+            entity.HasOne(v => v.User)
+                .WithOne()
+                .HasForeignKey<ProfileVerification>(v => v.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 }

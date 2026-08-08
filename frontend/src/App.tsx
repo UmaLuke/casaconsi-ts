@@ -7,6 +7,7 @@ import { LandingPage } from './pages/LandingPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
 import { AuthProvider } from './context/AuthContext';
 import { DashboardPage } from './pages/DashboardPage';
+import { ProfilePage } from './pages/ProfilePage';
 import { ExploreSpacesPage } from './pages/ExploreSpacesPage';
 import { DiscoverPage } from './pages/DiscoverPage';
 import { MessagesPage } from './pages/MessagesPage';
@@ -29,21 +30,47 @@ const LandingPageLayout = () => {
 
 export const App = () => {
   return (
-    <AuthProvider>
-      <Router>
+    // AuthProvider va adentro de Router: así puede usar useNavigate() para
+    // mandar a la landing apenas se dispara logout() (manual o automático
+    // por vencimiento de token), sin depender de que cada página esté
+    // detrás de ProtectedRoute.
+    <Router>
+      <AuthProvider>
         <FloatingNav />
         <Routes>
           <Route path="/" element={<LandingPageLayout />} />
-          
+
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/register/asesor" element={<RegisterAdvisorPage />} />
-          <Route path="/cuestionario/buscar" element={<StudentQuestionnairePage />} />
-          <Route path="/cuestionario/ofrecer" element={<HostQuestionnairePage />} />
+          <Route
+            path="/cuestionario/buscar"
+            element={
+              <ProtectedRoute>
+                <StudentQuestionnairePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cuestionario/ofrecer"
+            element={
+              <ProtectedRoute>
+                <HostQuestionnairePage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/dashboard"
             element={
               <ProtectedRoute requireAdmin>
                 <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mi-perfil"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
               </ProtectedRoute>
             }
           />
@@ -56,11 +83,18 @@ export const App = () => {
               </ProtectedRoute>
             }
           />
-          <Route path="/mensajes" element={<MessagesPage />} />
+          <Route
+            path="/mensajes"
+            element={
+              <ProtectedRoute>
+                <MessagesPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/asesorias" element={<AdvisoryPage />} />
         </Routes>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 };
 

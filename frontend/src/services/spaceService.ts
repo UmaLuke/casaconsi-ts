@@ -29,15 +29,20 @@ interface SpaceResponseDto {
   duration: Duration;
   amenities: string[];
   imageUrl: string | null;
+  photoUrls: string[];
   verified: boolean;
 }
 
-const toImageUrl = (imageUrl: string | null): string => {
-  if (!imageUrl) return PLACEHOLDER_IMAGE_URL;
-  // ExternalImageUrl (seed/demo) ya es absoluta; una foto real subida viene
-  // como ruta relativa del backend (/uploads/...).
-  return imageUrl.startsWith('http') ? imageUrl : `${API_URL}${imageUrl}`;
-};
+// ExternalImageUrl (seed/demo) ya es absoluta; una foto real subida (Space o
+// HostProfile, ambas vía FileStorageService) viene como ruta relativa del
+// backend (/uploads/...).
+const resolvePhotoUrl = (url: string): string => (url.startsWith('http') ? url : `${API_URL}${url}`);
+
+const toImageUrl = (imageUrl: string | null): string =>
+  imageUrl ? resolvePhotoUrl(imageUrl) : PLACEHOLDER_IMAGE_URL;
+
+const toPhotoUrls = (photoUrls: string[]): string[] =>
+  photoUrls.length > 0 ? photoUrls.map(resolvePhotoUrl) : [PLACEHOLDER_IMAGE_URL];
 
 const toSpace = (dto: SpaceResponseDto): Space => ({
   id: dto.id,
@@ -54,6 +59,7 @@ const toSpace = (dto: SpaceResponseDto): Space => ({
   duration: dto.duration,
   amenities: dto.amenities,
   imageUrl: toImageUrl(dto.imageUrl),
+  photoUrls: toPhotoUrls(dto.photoUrls),
   verified: dto.verified,
 });
 

@@ -2,9 +2,9 @@
 // Se llega acá después de crear la cuenta básica con role: 'student'
 // (RegisterForm -> RegisterPage -> navigate('/cuestionario/buscar')).
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GraduationCap } from 'lucide-react';
+import { GraduationCap, Loader2 } from 'lucide-react';
 import { BrandLogo } from '../../components/common/BrandLogo';
 import { QuestionnaireWizard } from '../../components/features/questionnaire/QuestionnaireWizard';
 import { STUDENT_QUESTIONNAIRE_SCHEMA } from '../../data/studentQuestionnaireSchema';
@@ -12,14 +12,45 @@ import { createEmptyStudentQuestionnaire, type StudentQuestionnaireData } from '
 import type { QuestionnaireFieldValue } from '../../types/questionnaire-common';
 import { deriveGenerationFromBirthDate } from '../../utils/generation';
 import { useAuth } from '../../hooks/useAuth';
-import { ProfileError, submitStudentQuestionnaire } from '../../services/questionnaireService';
+import { ProfileError, getStudentProfile, submitStudentQuestionnaire, toStudentQuestionnaireData } from '../../services/questionnaireService';
 
 export const StudentQuestionnairePage = () => {
   const navigate = useNavigate();
   const { token } = useAuth();
   const [formData, setFormData] = useState<StudentQuestionnaireData>(createEmptyStudentQuestionnaire());
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [hadExistingProfile, setHadExistingProfile] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Ver nota equivalente en HostQuestionnairePage.tsx: precarga el perfil ya
+  // guardado en vez de arrancar en blanco. Fotos excluidas a propósito.
+  useEffect(() => {
+    if (!token) {
+      setIsLoadingProfile(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    getStudentProfile(token)
+      .then((profile) => {
+        if (cancelled || !profile) return;
+        setFormData(toStudentQuestionnaireData(profile));
+        setHadExistingProfile(true);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        console.error('Error al cargar el perfil de estudiante existente', error);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingProfile(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
 
   const handleFieldChange = (sectionId: string, fieldId: string, value: QuestionnaireFieldValue) => {
     setFormData((prev) => {
@@ -83,14 +114,29 @@ export const StudentQuestionnairePage = () => {
         </div>
       )}
 
-      <QuestionnaireWizard
-        sections={STUDENT_QUESTIONNAIRE_SCHEMA}
-        values={formData as unknown as Record<string, Record<string, QuestionnaireFieldValue>>}
-        onFieldChange={handleFieldChange}
-        onComplete={handleComplete}
-        isSubmitting={isSubmitting}
-        accentColor="orange"
-      />
+      {hadExistingProfile && !isLoadingProfile && (
+        <div role="alert" className="alert bg-brand-orange/10 border border-brand-orange/20 text-sm py-3 max-w-2xl mx-auto mb-6">
+          <span>
+            Ya tenías este cuestionario completado — precargamos tus datos guardados. Las fotos no se muestran acá,
+            pero se conservan tal como las subiste salvo que cargues una nueva.
+          </span>
+        </div>
+      )}
+
+      {isLoadingProfile ? (
+        <div className="flex justify-center py-16">
+          <Loader2 className="size-8 animate-spin text-brand-orange" />
+        </div>
+      ) : (
+        <QuestionnaireWizard
+          sections={STUDENT_QUESTIONNAIRE_SCHEMA}
+          values={formData as unknown as Record<string, Record<string, QuestionnaireFieldValue>>}
+          onFieldChange={handleFieldChange}
+          onComplete={handleComplete}
+          isSubmitting={isSubmitting}
+          accentColor="orange"
+        />
+      )}
     </div>
   );
 };

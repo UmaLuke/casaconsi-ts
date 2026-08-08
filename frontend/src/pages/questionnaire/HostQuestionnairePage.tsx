@@ -2,9 +2,9 @@
 // Se llega acá después de crear la cuenta básica con role: 'host'
 // (RegisterForm -> RegisterPage -> navigate('/cuestionario/ofrecer')).
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home } from 'lucide-react';
+import { Home, Loader2 } from 'lucide-react';
 import { BrandLogo } from '../../components/common/BrandLogo';
 import { QuestionnaireWizard } from '../../components/features/questionnaire/QuestionnaireWizard';
 import { HOST_QUESTIONNAIRE_SCHEMA } from '../../data/hostQuestionnaireSchema';
@@ -12,14 +12,48 @@ import { createEmptyHostQuestionnaire, type HostQuestionnaireData } from '../../
 import type { QuestionnaireFieldValue } from '../../types/questionnaire-common';
 import { deriveGenerationFromBirthDate } from '../../utils/generation';
 import { useAuth } from '../../hooks/useAuth';
-import { ProfileError, submitHostQuestionnaire } from '../../services/questionnaireService';
+import { ProfileError, getHostProfile, submitHostQuestionnaire, toHostQuestionnaireData } from '../../services/questionnaireService';
 
 export const HostQuestionnairePage = () => {
   const navigate = useNavigate();
   const { token } = useAuth();
   const [formData, setFormData] = useState<HostQuestionnaireData>(createEmptyHostQuestionnaire());
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [hadExistingProfile, setHadExistingProfile] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Si ya había completado el cuestionario antes, precarga el formulario con
+  // lo guardado en vez de arrancar en blanco — antes esto no pasaba, y
+  // "reeditar" terminaba pisando el perfil con un formulario vacío. Las
+  // fotos no se precargan (quedan como "no elegiste un archivo nuevo"), ver
+  // nota en toHostQuestionnaireData.
+  useEffect(() => {
+    if (!token) {
+      setIsLoadingProfile(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    getHostProfile(token)
+      .then((profile) => {
+        if (cancelled || !profile) return;
+        setFormData(toHostQuestionnaireData(profile));
+        setHadExistingProfile(true);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        console.error('Error al cargar el perfil de anfitrión existente', error);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingProfile(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
 
   const handleFieldChange = (sectionId: string, fieldId: string, value: QuestionnaireFieldValue) => {
     setFormData((prev) => {
@@ -83,14 +117,29 @@ export const HostQuestionnairePage = () => {
         </div>
       )}
 
-      <QuestionnaireWizard
-        sections={HOST_QUESTIONNAIRE_SCHEMA}
-        values={formData as unknown as Record<string, Record<string, QuestionnaireFieldValue>>}
-        onFieldChange={handleFieldChange}
-        onComplete={handleComplete}
-        isSubmitting={isSubmitting}
-        accentColor="teal"
-      />
+      {hadExistingProfile && !isLoadingProfile && (
+        <div role="alert" className="alert bg-brand-teal/10 border border-brand-teal/20 text-sm py-3 max-w-2xl mx-auto mb-6">
+          <span>
+            Ya tenías este cuestionario completado — precargamos tus datos guardados. Las fotos no se muestran acá,
+            pero se conservan tal como las subiste salvo que cargues una nueva.
+          </span>
+        </div>
+      )}
+
+      {isLoadingProfile ? (
+        <div className="flex justify-center py-16">
+          <Loader2 className="size-8 animate-spin text-brand-teal" />
+        </div>
+      ) : (
+        <QuestionnaireWizard
+          sections={HOST_QUESTIONNAIRE_SCHEMA}
+          values={formData as unknown as Record<string, Record<string, QuestionnaireFieldValue>>}
+          onFieldChange={handleFieldChange}
+          onComplete={handleComplete}
+          isSubmitting={isSubmitting}
+          accentColor="teal"
+        />
+      )}
     </div>
   );
 };

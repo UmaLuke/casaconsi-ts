@@ -2,7 +2,7 @@ tags: [modulo, backend, perfiles, cuestionario]
 
 # Módulo: Perfiles (cuestionario post-registro)
 
-**Estado:** ✅ Implementado y migrado end-to-end (backend). Frontend del cuestionario ya construido (pendiente de conectar a estos endpoints).
+**Estado:** ✅ Implementado end-to-end (backend + frontend), incluida la re-edición de un perfil ya existente (ver sección Frontend, fix del 2026-08-04).
 
 ## Backend
 
@@ -32,8 +32,15 @@ tags: [modulo, backend, perfiles, cuestionario]
 ### Datos de prueba
 - `Data/DemoProfileSeeder.cs` — siembra estudiantes y anfitriones de prueba con perfiles completos, **solo en Development**. Idempotente (salta si el email ya existe). Ver [[../datos-demo|datos-demo]] para las credenciales.
 
+## Frontend
+
+- `StudentQuestionnairePage.tsx` / `HostQuestionnairePage.tsx` arrancaban siempre con `createEmptyStudentQuestionnaire()`/`createEmptyHostQuestionnaire()`, sin cargar nunca el perfil ya guardado — **(2026-08-04, bug corregido)**: al entrar al cuestionario con un perfil existente, se veía en blanco, y como el `PUT` es upsert, guardar así pisaba el perfil completo con los defaults vacíos en los campos no vueltos a llenar (riesgo real de pérdida de datos, no solo cosmético).
+  - Fix: `questionnaireService.ts` ahora expone `getStudentProfile`/`getHostProfile` (`GET /api/profile/student|host`, devuelven `null` en 404 — primera vez, no es error) y `toStudentQuestionnaireData`/`toHostQuestionnaireData` (inverso de `toStudentPayload`/`toHostPayload`, reconstruye el shape estricto del form a partir del DTO de respuesta).
+  - Ambas páginas hacen un `useEffect` al montar que precarga `formData` si ya existe un perfil, con estado de carga (`isLoadingProfile`) y un aviso visible cuando se precargó desde uno existente.
+  - **Fotos deliberadamente no precargadas:** `profilePhoto`/`homeAndRoomPhotos`/`presentationMedia` quedan en `null`/`[]` al reeditar (son campos `File` en el form; el backend solo expone URLs, no los bytes). Esto es seguro porque `ProfileService.SaveStudentProfileAsync`/`SaveHostProfileAsync` nunca tocan las rutas de foto — solo `SaveXPhotosAsync` las pisa, y eso solo se llama si el `FormData` de fotos trae algo. Dejar esos campos vacíos en el form al reeditar equivale a "no subas nada nuevo", no a "borrá lo que había". `housingData.homePhotos` queda igual en `[]` por el mismo motivo por el que ya no se envía en el submit (ver nota en `toHostPayload`).
+  - Pendiente real: mostrarle a la persona una preview de sus fotos ya cargadas al reeditar (hoy solo hay un texto de aviso genérico, no la foto en sí) — requeriría que `QuestionnaireField`/`ImageField`/`ImagesField` acepten una URL existente además de un `File` nuevo, hoy no lo soportan.
+
 ## Pendiente
-- Conectar el cuestionario del frontend (ya construido) a estos endpoints.
 - Cuando se construya el módulo Match, resolver el DTO "público" de perfil (sin `Health`, sin DNI) para mostrar en el feed de matches — ver nota de protección de datos en `StudentHealth`/`HostHealth`.
 
 ## Enlaces relacionados

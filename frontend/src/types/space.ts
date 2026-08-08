@@ -17,5 +17,7 @@ export interface Space {
   duration: Duration;
   amenities: string[];
   imageUrl: string;
+  /** Para el carrusel del modal de detalle — ver SpaceResponseDto.PhotoUrls. Siempre tiene al menos 1 elemento (mismo placeholder que imageUrl si no hay fotos reales). */
+  photoUrls: string[];
   verified: boolean;
 }

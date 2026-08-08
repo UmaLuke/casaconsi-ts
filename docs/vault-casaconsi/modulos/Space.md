@@ -10,7 +10,14 @@ tags: [modulo, backend]
 Campos: `Title`, `Description`, `Location` (descriptivo), `Neighborhood` (canónico, para filtrar), `HostTypeLabel` (texto libre, ej. "Propietario"/"Familia Anfitriona" — no tiene equivalente en `HostProfile`, se completa por publicación), `PriceArs`, `Purpose` (`compartir-gastos` | `estudiar`), `Duration`, `Amenities`, `Verified`, `IsActive` (publicado/pausado, para el futuro `MySpacesList`).
 
 ### Fotos
-Mismo patrón que `HostProfile.HomePhotoPaths`: `PhotoPaths` (lista, subida real vía `FileStorageService`/multipart). Además hay un campo temporal `ExternalImageUrl` (URL absoluta externa) que solo se usa si `PhotoPaths` está vacío — sirve para los 3 espacios demo (reutilizan las URLs de Unsplash que tenía el mock del frontend) sin necesidad de subir archivos reales. El día que un `Space` real suba fotos, esas tienen prioridad. `SpaceService.ToImageUrl` resuelve esta prioridad.
+Mismo patrón que `HostProfile.HomePhotoPaths`: `PhotoPaths` (lista, subida real vía `FileStorageService`/multipart, `POST /api/space/{id}/photos`). Además hay un campo temporal `ExternalImageUrl` (URL absoluta externa) que solo se usa si `PhotoPaths` está vacío — sirve para los 3 espacios demo (reutilizan las URLs de Unsplash que tenía el mock del frontend) sin necesidad de subir archivos reales.
+
+**(2026-08-05)** Hasta ahora `PhotoPaths` se subía pero nunca se exponía completo — `SpaceResponseDto` solo mandaba la primera foto (`ImageUrl`, para la miniatura de la card), el resto quedaba guardado pero invisible. Se agregó `PhotoUrls: List<string>` al DTO, con esta prioridad (`SpaceService.ToPhotoUrlsAsync`):
+1. `Space.PhotoPaths` (fotos propias del anuncio, si el anfitrión subió alguna).
+2. Si no hay ninguna: `HostProfile.HomePhotoPaths` (fotos generales de la casa, del cuestionario) — así un anuncio sin fotos propias no cae directo al placeholder de Unsplash si el anfitrión ya tiene fotos reales de su casa cargadas.
+3. Si tampoco hay: `ExternalImageUrl` (o lista vacía si no hay nada).
+
+`ImageUrl` (miniatura) queda siempre como `PhotoUrls[0]` — se mantiene por compatibilidad con la grilla, que solo necesita una imagen.
 
 ## Backend (implementado)
 - `SpaceController` (`/api/space`):
@@ -36,11 +43,12 @@ Mismo patrón que `HostProfile.HomePhotoPaths`: `PhotoPaths` (lista, subida real
 - `types/space.ts`: corregido `id: number` → `id: string` (era una inconsistencia real con el resto del backend, que usa `Guid` en todos lados).
 - `ExploreSpacesPage.tsx`: reemplazado el array `mockSpaces` hardcodeado por el fetch real. Los filtros (barrio, generación, propósito, duración, verificado) siguen siendo client-side sobre el array ya traído — no hay filtrado server-side todavía.
 - `SpaceDetailsModal.tsx` (nuevo, `components/features/spaces/`): modal `<dialog>` + DaisyUI (mismo patrón que `LoginModal`) que muestra el detalle completo de un `Space` (imagen, precio, verificado, ubicación, anfitrión, propósito, duración, generación, comodidades). Se abre desde el botón "Ver detalles" de cada card; se mantiene siempre montado fuera del `.map` y se controla por ref (`showModal()`/`close()`). `modal-box` usa `max-h-[90vh] overflow-y-auto` (no `overflow-hidden` a secas) para que el contenido scrollee y el footer nunca quede cortado.
+  - **(2026-08-05)** La imagen única del header pasó a ser un carrusel sobre `space.photoUrls` (flechas prev/next + dots, con fade entre fotos) — solo se muestran los controles si hay más de una foto. Estado `currentPhotoIndex` local al modal, se resetea a `0` con un `useEffect` sobre `space?.id` (el modal se reutiliza para cualquier `Space` que se abra, sin desmontarse). El badge de precio se movió de la esquina inferior-derecha a la superior (junto al botón de cerrar) para no pisarse con los dots del carrusel, que ahora ocupan el centro-inferior.
 - `MatchDecisionButtons.tsx` (nuevo, `components/features/spaces/`): par de botones (✕ rechazar / ✓ verde marcar match), compartido entre la card de la grilla (debajo de "Ver detalles") y el footer de `SpaceDetailsModal` (reemplazó al botón "Cerrar" de ahí). Estado `idle | loading | liked | passed` por `Space.id`, manejado en `ExploreSpacesPage` para que card y modal queden sincronizados.
 - Al presionar cualquiera de los dos botones, `ExploreSpacesPage.handleDecide` llama a `matchService.registerLikeDecision(token, space.hostUserId, liked)` (ver [[Match]]) — cierra el modal si estaba abierto y muestra un toast de error si falla (sin sesión, generación igual, etc.).
 
 ## Pendiente
-- `SpaceDetailPage.tsx`, `MySpacesList.tsx`, `NewSpaceForm.tsx` — el backend ya tiene los endpoints (`GET /{id}`, `GET /mine`, `POST`, `POST /{id}/photos`), falta la UI.
+- `SpaceDetailPage.tsx`, `MySpacesList.tsx`, `NewSpaceForm.tsx` — el backend ya tiene los endpoints (`GET /{id}`, `GET /mine`, `POST`, `POST /{id}/photos`), falta la UI. Sin `NewSpaceForm`, hoy no hay forma de probar `POST /{id}/photos` con fotos propias de un `Space` real — el fallback a `HostProfile.HomePhotoPaths` es lo único que se ve en la práctica hasta que exista esa pantalla.
 - Reemplazar `ExternalImageUrl` por fotos reales subidas cuando exista `NewSpaceForm`.
 - Evaluar filtrado server-side si el volumen de `Space` crece (hoy trae todo y filtra en el cliente).
 - ⚠️ Ver [[Match]]: no está resuelto si `ApplicationsList.jsx`/`IncomingRequests.jsx` (modelo de "solicitud a un Space puntual") conviven con el like mutuo del módulo Match, o quedan obsoletos.

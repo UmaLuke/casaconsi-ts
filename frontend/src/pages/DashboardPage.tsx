@@ -6,6 +6,7 @@ import {
   LogOut, Bell, ChevronRight, BarChart3, ShieldCheck
 } from 'lucide-react';
 import { BrandLogo } from '../components/common/BrandLogo';
+import { resolveAvatarUrl } from '../utils/avatar';
 
 // Acceso exclusivo de administración. El gate real vive en <ProtectedRoute requireAdmin>
 // (App.tsx) — para cuando se renderiza este componente, user ya no es null y
@@ -59,7 +60,7 @@ export const DashboardPage = () => {
           <div className="flex items-center gap-3">
             <div className="avatar">
               <div className="w-10 rounded-full ring ring-brand-teal ring-offset-white ring-offset-1">
-                <img src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`} alt="Avatar" />
+                <img src={resolveAvatarUrl(user.avatar, user.name)} alt="Avatar" />
               </div>
             </div>
             <div className="flex-1 min-w-0">

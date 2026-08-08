@@ -48,11 +48,17 @@ namespace CasaConSi.Api.Migrations
                     b.Property<int?>("Generation")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("IsDemoUser")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("MembershipTier")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -223,6 +229,57 @@ namespace CasaConSi.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("ProfileLikes");
+                });
+
+            modelBuilder.Entity("CasaConSi.Api.Models.ProfileVerification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("CohabitationHistoryVerified")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("ContactVerified")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CreditStatusVerified")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CriminalRecordVerified")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IdentityVerified")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("PersonalReferencesVerified")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("ProofOfStatusVerified")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("SocialMediaVerified")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("SwornDeclarationAccepted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("VirtualInterviewCompleted")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("ProfileVerifications");
                 });
 
             modelBuilder.Entity("CasaConSi.Api.Models.Space", b =>
@@ -831,6 +888,17 @@ namespace CasaConSi.Api.Migrations
                         .HasForeignKey("StudentUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("CasaConSi.Api.Models.ProfileVerification", b =>
+                {
+                    b.HasOne("CasaConSi.Api.Models.ApplicationUser", "User")
+                        .WithOne()
+                        .HasForeignKey("CasaConSi.Api.Models.ProfileVerification", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("CasaConSi.Api.Models.Space", b =>

@@ -49,7 +49,7 @@ const ACCENT_DOT_CLASS = {
 } as const;
 
 /** ¿Este campo debe mostrarse, según el valor actual del campo del que depende? */
-const isFieldVisible = (
+export const isFieldVisible = (
   field: QuestionnaireFieldSchema,
   sectionValues: Record<string, QuestionnaireFieldValue>,
 ): boolean => {
@@ -67,7 +67,7 @@ const isFieldVisible = (
 };
 
 /** ¿Este valor cuenta como "completado" para un campo obligatorio? */
-const isValueFilled = (fieldType: QuestionnaireFieldType, value: QuestionnaireFieldValue): boolean => {
+export const isValueFilled = (fieldType: QuestionnaireFieldType, value: QuestionnaireFieldValue): boolean => {
   switch (fieldType) {
     case 'multiselect':
     case 'images':

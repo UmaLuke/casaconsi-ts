@@ -39,7 +39,15 @@ export const ExploreSpacesPage = () => {
   const [decisions, setDecisions] = useState<Record<string, DecisionStatus>>({});
   const [decisionError, setDecisionError] = useState<string | null>(null);
 
+  // Ver el detalle de un espacio (foto grande, comodidades, like/pass) pide
+  // sesión — sin token abrimos el login (mismo <dialog id="login_modal">
+  // que monta el Header) en vez del modal de detalles.
   const handleOpenDetails = (space: Space) => {
+    if (!token) {
+      const modal = document.getElementById('login_modal') as HTMLDialogElement | null;
+      modal?.showModal();
+      return;
+    }
     setSelectedSpace(space);
     detailsModalRef.current?.showModal();
   };

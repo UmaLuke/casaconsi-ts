@@ -45,7 +45,7 @@ public static class DemoProfileSeeder
 
         foreach (var seed in Hosts)
         {
-            await SeedHostAsync(userManager, db, dniProtector, seed);
+            await SeedHostAsync(userManager, db, dniProtector, environment, seed);
         }
     }
 
@@ -80,6 +80,25 @@ public static class DemoProfileSeeder
         }
     }
 
+    // Completa los ítems 1..N en el orden fijo del docx "Verificación de Perfil"
+    // (mismo orden que TrustService.BuildResponse). Si el tier es Freemium, cap
+    // en 6 aunque pidas más — los ítems 7-10 son exclusivos de Premium.
+    private static void ApplyTrustScore(ProfileVerification verification, int targetScore, MembershipTier tier)
+        {
+            var maxAllowed = tier == MembershipTier.Premium ? 10 : 6;
+            var score = Math.Clamp(targetScore, 0, maxAllowed);
+
+            verification.IdentityVerified = score >= 1;
+            verification.ContactVerified = score >= 2;
+            verification.SocialMediaVerified = score >= 3;
+            verification.CreditStatusVerified = score >= 4;
+            verification.ProofOfStatusVerified = score >= 5;
+            verification.SwornDeclarationAccepted = score >= 6;
+            verification.PersonalReferencesVerified = score >= 7;
+            verification.VirtualInterviewCompleted = score >= 8;
+            verification.CriminalRecordVerified = score >= 9;
+            verification.CohabitationHistoryVerified = score >= 10;
+        }
     private static async Task SeedStudentAsync(
         UserManager<ApplicationUser> userManager,
         ApplicationDbContext db,
@@ -98,12 +117,19 @@ public static class DemoProfileSeeder
             Role = UserRole.Student,
             EmailConfirmed = true,
             Generation = seed.Generation,
+            IsDemoUser = true,
+            MembershipTier = seed.MembershipTier,
         };
 
         var result = await userManager.CreateAsync(user, DemoPassword);
         if (!result.Succeeded) return;
 
         var profilePhotoPath = CopyDemoProfilePhoto(environment, user.Id, seed.ProfilePhotoFileName);
+        if (profilePhotoPath is not null)
+        {
+            user.Avatar = $"/uploads/{profilePhotoPath}";
+            await userManager.UpdateAsync(user);
+        }
 
         var profile = new StudentProfile
         {
@@ -191,7 +217,12 @@ public static class DemoProfileSeeder
             AvailableFrom = DateOnly.TryParse(seed.AvailableFrom, out var availableFrom) ? availableFrom : null,
         };
 
+    
+        var verification = new ProfileVerification { Id = Guid.NewGuid(), UserId = user.Id };
+        ApplyTrustScore(verification, seed.TrustScore, seed.MembershipTier);
+
         db.StudentProfiles.Add(profile);
+        db.ProfileVerifications.Add(verification);
         await db.SaveChangesAsync();
     }
 
@@ -199,6 +230,7 @@ public static class DemoProfileSeeder
         UserManager<ApplicationUser> userManager,
         ApplicationDbContext db,
         IDataProtector dniProtector,
+        IWebHostEnvironment environment,
         HostSeed seed)
     {
         var existing = await userManager.FindByEmailAsync(seed.Email);
@@ -212,16 +244,33 @@ public static class DemoProfileSeeder
             Role = UserRole.Host,
             EmailConfirmed = true,
             Generation = seed.Generation,
+            IsDemoUser = true,
+            MembershipTier = seed.MembershipTier,
         };
 
         var result = await userManager.CreateAsync(user, DemoPassword);
         if (!result.Succeeded) return;
+
+        var profilePhotoPath = CopyDemoProfilePhoto(environment, user.Id, seed.ProfilePhotoFileName);
+        if (profilePhotoPath is not null)
+        {
+            user.Avatar = $"/uploads/{profilePhotoPath}";
+            await userManager.UpdateAsync(user);
+        }
+        
+        var homePhotoPaths = seed.HomePhotoFileNames
+            .Select(fileName => CopyDemoProfilePhoto(environment, user.Id, fileName))
+            .Where(path => path is not null)
+            .Select(path => path!)
+            .ToList();
 
         var profile = new HostProfile
         {
             Id = Guid.NewGuid(),
             UserId = user.Id,
             EncryptedDni = dniProtector.Protect(seed.Dni),
+            ProfilePhotoPath = profilePhotoPath,
+            HomePhotoPaths = homePhotoPaths,
             PersonalData = new HostPersonalData
             {
                 FullName = seed.FullName,
@@ -303,7 +352,11 @@ public static class DemoProfileSeeder
             HousingType = seed.HousingType,
         };
 
+        var verification = new ProfileVerification { Id = Guid.NewGuid(), UserId = user.Id };
+        ApplyTrustScore(verification, seed.TrustScore, seed.MembershipTier);
+
         db.HostProfiles.Add(profile);
+        db.ProfileVerifications.Add(verification);
         await db.SaveChangesAsync();
     }
 
@@ -315,6 +368,8 @@ public static class DemoProfileSeeder
         public required string BirthDate { get; init; }
         public required string Gender { get; init; }
         public required Generation Generation { get; init; }
+        public MembershipTier MembershipTier { get; init; } = MembershipTier.Freemium;
+        public int TrustScore { get; init; } = 6; // 0..10, ver ApplyTrustScore
         public required string ProfilePhotoFileName { get; init; }
         public string ContactPhone { get; init; } = "3511234567";
         public string EmergencyContactName { get; init; } = "Contacto de emergencia";
@@ -371,6 +426,17 @@ public static class DemoProfileSeeder
         public required string Gender { get; init; }
         public required string MaritalStatus { get; init; }
         public required Generation Generation { get; init; }
+        public MembershipTier MembershipTier { get; init; } = MembershipTier.Freemium;
+        public int TrustScore { get; init; } = 6; // 0..10, ver ApplyTrustScore
+        // Fotos: mismo mecanismo que StudentSeed.ProfilePhotoFileName — se
+        // copian desde Data/DemoAssets/ a wwwroot/uploads/profiles/{userId}/
+        // vía CopyDemoProfilePhoto. HomePhotoFileNames son placeholders
+        // genéricos compartidos entre los 3 hosts demo (no hay fotos reales
+        // de cada casa) — reemplazar por fotos reales cuando existan, sin
+        // tocar código: solo pisar los .jpg en Data/DemoAssets con el mismo
+        // nombre de archivo.
+        public required string ProfilePhotoFileName { get; init; }
+        public List<string> HomePhotoFileNames { get; init; } = new();
         public string ContactPhone { get; init; } = "3511234567";
         public required string FamilyReferenceName { get; init; }
         public string FamilyReferenceRelationship { get; init; } = "Hijo/a";
@@ -423,6 +489,7 @@ public static class DemoProfileSeeder
             BirthDate = "2003-04-12",
             Gender = "femenino",
             Generation = Generation.JovenAdulto,
+            MembershipTier = MembershipTier.Freemium, TrustScore = 4,
             ProfilePhotoFileName = "mia-fernandez.jpg",
             EmergencyContactName = "Marta Fernández",
             EmergencyContactRelationship = "Madre",
@@ -455,6 +522,7 @@ public static class DemoProfileSeeder
             DealBreakers = "Que no se respeten los horarios de descanso",
             Motivation = "Quiero vivir una experiencia de convivencia real, no solo alquilar una habitación.",
             AboutMe = "Estudiante tranquila, busco un hogar con calidez.",
+            
         },
         new StudentSeed
         {
@@ -464,6 +532,7 @@ public static class DemoProfileSeeder
             BirthDate = "2002-11-03",
             Gender = "masculino",
             Generation = Generation.JovenAdulto,
+            MembershipTier = MembershipTier.Freemium, TrustScore = 6,
             ProfilePhotoFileName = "juan-perez.jpg",
             EmergencyContactName = "Roberto Pérez",
             EmergencyContactRelationship = "Padre",
@@ -496,6 +565,7 @@ public static class DemoProfileSeeder
             DealBreakers = "Ruido excesivo por las noches",
             Motivation = "Me interesa el intercambio intergeneracional y ayudar con tareas del hogar.",
             AboutMe = "Me gusta cocinar y compartir charlas.",
+            
         },
         new StudentSeed
         {
@@ -505,6 +575,7 @@ public static class DemoProfileSeeder
             BirthDate = "2004-02-20",
             Gender = "femenino",
             Generation = Generation.JovenAdulto,
+            MembershipTier = MembershipTier.Freemium, TrustScore = 9,
             ProfilePhotoFileName = "sofia-gomez.jpg",
             EmergencyContactName = "Laura Gómez",
             EmergencyContactRelationship = "Madre",
@@ -552,6 +623,9 @@ public static class DemoProfileSeeder
             Gender = "femenino",
             MaritalStatus = "viudo",
             Generation = Generation.AdultoMayor,
+            MembershipTier = MembershipTier.Premium, TrustScore = 10,
+            ProfilePhotoFileName = "rosa-martinez.jpg",
+            HomePhotoFileNames = new() { "casa-living.jpg", "casa-cocina.jpg", "casa-bano.jpg", "casa-habitacion.jpg" },
             FamilyReferenceName = "Ana Martínez",
             FamilyReferenceRelationship = "Hija",
             ProfessionOrEducation = "Jubilada, ex docente de escuela primaria",
@@ -582,6 +656,7 @@ public static class DemoProfileSeeder
             DealBreakers = "Desorden constante en espacios comunes",
             Motivation = "Vivo sola hace años y quiero compartir mi casa con alguien joven y de confianza.",
             AboutMe = "Vivo sola hace años, me encantaría tener compañía joven en casa.",
+            
         },
         new HostSeed
         {
@@ -592,6 +667,9 @@ public static class DemoProfileSeeder
             Gender = "masculino",
             MaritalStatus = "casado",
             Generation = Generation.AdultoMayor,
+            MembershipTier = MembershipTier.Freemium, TrustScore = 2,
+            ProfilePhotoFileName = "carlos-diaz.jpg",
+            HomePhotoFileNames = new() { "casa-living.jpg", "casa-cocina.jpg", "casa-bano.jpg", "casa-habitacion.jpg" },
             FamilyReferenceName = "Marcelo Díaz",
             FamilyReferenceRelationship = "Hijo",
             ProfessionOrEducation = "Jubilado, ex empleado bancario",
@@ -620,6 +698,7 @@ public static class DemoProfileSeeder
             DealBreakers = "Fiestas o reuniones sin avisar",
             Motivation = "Tengo una casa grande y disfruto compartirla, sobre todo con gente joven con ganas de aprender.",
             AboutMe = "Tengo una casa grande y me gustaría compartirla.",
+            
         },
         new HostSeed
         {
@@ -630,6 +709,9 @@ public static class DemoProfileSeeder
             Gender = "femenino",
             MaritalStatus = "divorciado",
             Generation = Generation.AdultoMayor,
+            MembershipTier = MembershipTier.Freemium, TrustScore = 8,
+            ProfilePhotoFileName = "elena-ruiz.jpg",
+            HomePhotoFileNames = new() { "casa-living.jpg", "casa-cocina.jpg", "casa-bano.jpg", "casa-habitacion.jpg" },
             FamilyReferenceName = "Pablo Ruiz",
             FamilyReferenceRelationship = "Hijo",
             ProfessionOrEducation = "Jubilada, ex profesora universitaria",
@@ -658,6 +740,7 @@ public static class DemoProfileSeeder
             DealBreakers = "Falta de comunicación",
             Motivation = "Busco compañía enriquecedora y la posibilidad de aprender cosas nuevas de otra generación.",
             AboutMe = "Busco alguien responsable para compartir mi hogar.",
+
         },
     };
 }

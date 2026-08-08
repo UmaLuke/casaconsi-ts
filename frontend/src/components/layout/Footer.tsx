@@ -14,7 +14,7 @@ export const Footer = () => {
           
           {/* Columna 1: Marca y Propósito */}
           <aside className="space-y-4">
-            <img src="/logo-full.svg" alt="Casa con Si" className="h-[7.5rem] w-auto object-contain" />
+            <img src="/lh.svg" alt="Casa con Si" className="h-14 w-auto object-contain" />
             <p className="text-base-content/70 leading-relaxed max-w-xs text-sm">
                 Fomentando la soliradida y la convivencia intergeneracional para un "ganar-ganar" entre nosotros. Un espacio de apoyo mutuo.              
             </p>

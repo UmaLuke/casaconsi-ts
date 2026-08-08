@@ -2,7 +2,7 @@ tags: [roadmap, casaconsi]
 
 # 🗺️ Roadmap — CASA con SI
 
-Estado general del proyecto. Última actualización: 2026-07-30 (Fix visual: `FloatingNav.tsx` tapaba contenido en 4 páginas — ver sección Bugs/ajustes de UI abajo).
+Estado general del proyecto. Última actualización: 2026-08-06 (nuevo módulo Confianza/Verificación de perfiles: backend completo — `ProfileVerification`, `MembershipTier`/`IsDemoUser` en `ApplicationUser`, `TrustController`/`TrustService`/`TrustRepository`, migración `AddTrustVerification` — más insignia `TrustBadge` en `ProfilePage.tsx` ("Datos de cuenta"), ver [[modulos/Confianza]]).
 
 Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/frontend]]
 
@@ -16,6 +16,12 @@ Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/fronten
 - Identity + JWT Bearer configurado en `Program.cs`.
 - Migración de Identity aplicada a `db_ccs` (20 columnas).
 - Verificado end-to-end con Postman.
+
+### Módulo Cuenta ([[modulos/Cuenta]])
+- **(2026-08-04)** Datos de *cuenta* (nombre, email, password, avatar) — distinto del perfil de match. `AccountController` → `AccountService` (sin Repository, mismo criterio que Auth: `UserManager<ApplicationUser>` hace de capa de datos) con endpoints `GET/PUT /api/account/me`, `POST /api/account/avatar`, `PUT /api/account/password`, `PUT /api/account/email`.
+- Sin migración nueva: reutiliza columnas existentes de `ApplicationUser`.
+- Frontend: `accountService.ts`, `AuthContext.updateUser` (refresca sesión sin relogin), `ProfilePage.tsx` (ruta `/mi-perfil`) con tabs de cuenta/seguridad/perfil de match, y link "Mi perfil" en el dropdown de `Header.tsx`.
+- Pendiente compilar con `dotnet build` real y probar en Postman/UI — ver [[modulos/Cuenta]].
 
 ### Módulo Perfiles / cuestionario post-registro ([[modulos/Perfiles]])
 - `StudentProfile` (9 secciones) y `HostProfile` (8 secciones), jsonb + columnas promovidas para el futuro Match.
@@ -61,9 +67,29 @@ Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/fronten
 - [x] Backend del módulo Space + `ExploreSpacesPage.tsx` conectado a `GET /api/space` (ver [[modulos/Space]]) — 3 espacios demo enlazados a los anfitriones demo, reemplazando `mockSpaces`.
 - [x] `SpaceDetailsModal.tsx` + botones de like/pass (`MatchDecisionButtons.tsx`) sobre un `Space`, conectados a `POST /api/match/like` — ver [[modulos/Space]] y [[modulos/Match]]. Requirió exponer `HostUserId` y `HostName` en `SpaceResponseDto`.
 - [x] `DiscoverPage.tsx` (ruta `/descubrir`, protegida): pantalla de swipe (un perfil a la vez) conectada a `GET /api/match/feed` + `POST /api/match/like` — ver [[modulos/Match]]. `Header` linkea "Descubrir Perfiles" solo para `role === 'host'`; `LoginModal` ahora redirige por rol (`host` → `/descubrir`, `student` → `/explorar`) en vez de mandar a todos a `/explorar`.
-- [ ] Pendiente: interceptor de 401 → `logout()` automático (no hay endpoint `/me` para validar el token al rehidratar).
+- [x] **(2026-08-01)** `AuthContext.tsx` ahora persiste también `expiresAt` (ya lo devolvía el backend en `AuthResponseDto`, no se usaba) y programa un `setTimeout` que dispara `logout()` justo al vencer el token; al rehidratar desde `localStorage` también chequea si ya venció. `logout()` pasó a navegar directo a `/` (`App.tsx` se reordenó: `Router` ahora envuelve a `AuthProvider` para que pueda usar `useNavigate()`) — así el logout automático redirige a la landing sin depender de que la página esté detrás de `ProtectedRoute` (`/explorar`, `/mensajes` y `/asesorias` son públicas). Ver [[decisiones/ADR-0002-persistencia-jwt]] actualizado.
+- [ ] Pendiente: interceptor de 401 → `logout()` automático para el caso en que el backend invalida el token *antes* de su vencimiento natural (ban, cambio de rol, etc.) — el chequeo de `expiresAt` en el cliente no lo puede detectar. Requeriría centralizar los `fetch` de los `services/*.ts` en un `httpClient.ts` común. Tampoco hay endpoint `/me` para revalidar contra el backend al rehidratar.
+- [x] **(2026-08-03)** `App.tsx`: `/mensajes`, `/cuestionario/buscar` y `/cuestionario/ofrecer` pasaron a estar detrás de `ProtectedRoute`. Las tres ya usaban `token` internamente (`MessagesPage`, `StudentQuestionnairePage`, `HostQuestionnairePage`) pero no tenían gate en el router — sin sesión, `MessagesPage` por ejemplo mostraba directamente "Todavía no tenés matches" en vez de pedir login, lo cual era engañoso. `/explorar` y `/asesorias` siguen públicas a propósito (navegación sin cuenta).
+- [x] **(2026-08-03)** Landing (`components/features/landing/ExploreSpaces.tsx`): reemplazado el array `mockSpaces` hardcodeado por los mismos datos reales que usa `/explorar` (`GET /api/space` vía `spaceService.getSpaces()`), recortados a los primeros 3 para el preview. "Ver Detalles" de cada card y el botón "Ver todos los espacios" ahora abren el `LoginModal` (`document.getElementById('login_modal')`) en vez de mostrar el detalle o navegar a `/explorar` si no hay sesión — mismo criterio ya aplicado en `ExploreSpacesPage.tsx` (`handleOpenDetails`), que también quedó gateado ahí. El listado en sí (grilla/preview) sigue siendo público; lo que pide login es el detalle de un espacio.
+- [x] **(2026-08-04)** Nuevo módulo Cuenta ([[modulos/Cuenta]]): botón "Mi perfil" en el dropdown de `Header.tsx` → `ProfilePage.tsx` (`/mi-perfil`, protegida) con edición de nombre/avatar, cambio de contraseña/email, y acceso directo al cuestionario de match. Backend: `AccountController`/`AccountService` nuevos (`/api/account/*`), sin migración (reutiliza columnas de `ApplicationUser`). *Nota:* `GET /api/account/me` no es el mismo `/me` que se venía pidiendo en el pendiente de abajo (interceptor de 401) — vive en el módulo Cuenta, no en Auth, y tampoco resuelve la revocación server-side; solo devuelve los datos vigentes del usuario del token.
+- [x] **(2026-08-04)** Bug encontrado al armar el módulo Cuenta: `StudentQuestionnairePage.tsx`/`HostQuestionnairePage.tsx` nunca cargaban el perfil ya guardado al reeditar — el cuestionario se veía en blanco y, al ser el `PUT` un upsert, guardar así pisaba el perfil completo con los defaults vacíos (riesgo real de pérdida de datos). Corregido: `getStudentProfile`/`getHostProfile` + `toStudentQuestionnaireData`/`toHostQuestionnaireData` nuevos en `questionnaireService.ts`, y ambas páginas precargan `formData` desde el perfil existente al montar. Fotos quedan fuera de la precarga a propósito (no se pierden, ver [[modulos/Perfiles]]).
+- [x] **(2026-08-04)** Pestaña "Mi perfil de match" de `ProfilePage.tsx` rediseñada: de un link al wizard externo a edición inline con acordeón (`QuestionnaireAccordion`, componente nuevo) — las secciones se ven colapsadas de a una, con chip de completitud, reusando `QuestionnaireField` y el mismo `submitHostQuestionnaire`/`submitStudentQuestionnaire` del wizard. Idea tomada de la pantalla "Editar perfil" de una app de citas (referencia visual del cliente) — ver [[modulos/Cuenta]].
+- [x] **(2026-08-05)** `SpaceDetailsModal.tsx` (ver [[modulos/Space]]): la imagen única del header pasó a ser un carrusel. De paso se encontró que `Space.PhotoPaths` ya soportaba varias fotos propias por anuncio (`POST /api/space/{id}/photos` ya funcionaba) pero `SpaceResponseDto` solo exponía la primera — se agregó `PhotoUrls` completo, con fallback a `HostProfile.HomePhotoPaths` cuando el anuncio no tiene fotos propias (caso de los 3 espacios demo hoy).
 
 **Verificado 2026-07-27:** confirmado en `frontend/src/pages` que `RegisterPage`, `ProfilePage`, `SpaceDetailPage`, `MySpacesList`, `NewSpaceForm`, `IncomingRequests`/`ApplicationsList` no existen todavía (solo están: `LandingPage`, `DashboardPage`, `DiscoverPage`, `ExploreSpacesPage`, `MessagesPage`, `AdvisoryPage`, `auth/`, `questionnaire/`). `AdvisoryPage.tsx` existe como pantalla placeholder — el backend de Asesorías sigue en estado "No iniciado" ([[modulos/Asesorias]]).
+
+---
+
+## 🎨 Ajustes visuales y de sesión (2026-08-01)
+
+- [x] `Header.tsx`: unificado el color de fondo en todas las páginas internas. Antes solo `/` (con scroll) y `/explorar` tenían la franja `bg-brand-teal`; el resto (Dashboard, Descubrir, Mensajes, Asesorías) caía en `bg-brand-navy`. Ahora todo lo que no sea la landing usa teal; la landing mantiene el comportamiento transparente→teal con scroll.
+- [x] `Header.tsx`: achicada la altura de la franja sin tocar el tamaño del logo ni de los íconos — se pisó el `min-height: 4rem` que trae `.navbar` de DaisyUI por defecto (clases `!min-h-0 !py-0`) y se ajustó el padding vertical externo del `<header>` a `py-2.5 md:py-3`.
+- [x] `ExploreSpacesPage.tsx`: agregado un toggle "Cuadrícula / Perfil" (arriba a la derecha del título) para mostrarle al cliente dos versiones de la misma pantalla sin tocar código. "Cuadrícula" es la grilla de siempre; "Perfil" es una vista estilo Tinder — un solo `Space` a la vez (mismo estilo de card grande que usa `DiscoverPage` para perfiles de host), sin botón para "pasar" sin decidir. La cola avanza sola al marcar ✕/✓ con `MatchDecisionButtons`, y al agotarse muestra "Ya viste todos los espacios disponibles" con botón para reiniciar la demo.
+- [x] `MatchDecisionButtons.tsx`: separación entre los botones ✕/✓ de `gap-3` a `gap-9`. Al ser un componente compartido, aplica en los dos roles (`ExploreSpacesPage` grilla y perfil, `DiscoverPage`, `SpaceDetailsModal`).
+- [x] Logo nuevo (diseño recibido del cliente vía `Logo.svg`): es un lockup combinado — ícono + nombre dibujado como letras vectoriales, apaisado vertical (`viewBox` 436×550) — que no encajaba tal cual en los usos actuales (fila horizontal en el header, recorte circular en el footer). Se separó en dos assets nuevos en `public/`:
+  - `logo-icon.svg` — solo el ícono, recortado a su bounding box real (`viewBox 0 0 436.81 412.5`). Reemplaza a `logo1.png` en `BrandLogo.tsx` (header).
+  - `logo-full.svg` — el SVG completo tal cual lo mandaron, guardado para uso futuro en espacios más grandes (hero, login). Es el que terminó usándose en `Footer.tsx` (`h-[7.5rem]`, sin el recorte circular `.avatar rounded-full` que tenía antes ni el `<span>` de texto HTML al lado, porque el nombre ya viene dibujado adentro).
+  - `logo1.png` quedó sin usar en `public/` (no se borró, por las dudas).
 
 ---
 
@@ -72,7 +98,7 @@ Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/fronten
 - [x] **(2026-07-30)** `FloatingNav.tsx`: la barra circular flotante (desktop/tablet, `fixed left-4`, ~62px de ancho) tapaba el contenido de las páginas que no reservaban espacio para ella — reportado sobre `MessagesPage` (cards de "Match's" cortadas), pero el mismo `<main>` se repite igual en `AdvisoryPage`, `DiscoverPage` y `ExploreSpacesPage` (ambos roles). Fix: agregado `md:pl-24` al `<main className="grow pt-28 md:pt-32 pb-20">` de las 4 páginas para reservar espacio a la izquierda solo en viewports `md+` (donde el nav flotante circular se muestra; en mobile es bottom-nav y no aplica).
 - [ ] `LandingPage`/`Header.tsx`: el botón "Registrarse" desaparece en viewport mobile — falta agregarlo al header mobile o al menú hamburguesa.
 - [ ] `MessagesPage.tsx`: la sección "Match's" debe reubicarse a la derecha del texto "Aquí podrás ver tus conexiones", dentro del recuadro de contenido (hoy las cards no ocupan ese espacio).
-- [ ] Dropdown de usuario (`Header.tsx`): agregar botón "Mi Perfil" — hoy el dropdown solo tiene "Cerrar Sesión". Depende de que exista `ProfilePage.jsx` (ver Fase 2, Módulo común).
+- [x] **(2026-08-04)** Dropdown de usuario (`Header.tsx`): agregado botón "Mi perfil", debajo del nombre/rol y arriba de "Ir a mi Panel"/"Cerrar Sesión" — ver [[modulos/Cuenta]].
 
 ---
 
@@ -80,7 +106,7 @@ Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/fronten
 
 ### Módulo común
 - [ ] `RegisterPage.jsx` / `RegisterModal.jsx` — diseño final del flujo de creación de cuenta.
-- [ ] `ProfilePage.jsx` — gestión de datos personales, foto y preferencias de convivencia.
+- [x] **(2026-08-04)** `ProfilePage.tsx` — gestión de datos de cuenta (nombre, foto/avatar) y seguridad (contraseña, email). Las "preferencias de convivencia" quedaron afuera a propósito: eso es el cuestionario de match (ver [[modulos/Perfiles]]), al que la pestaña "Mi perfil de match" solo linkea en vez de duplicar el formulario — ver [[modulos/Cuenta]].
 
 ### Módulo estudiante (buscador de alojamiento)
 - [x] `ExploreSpacesPage.jsx` — buscador con filtros (precio, zona, servicios) + grid. Conectado a `GET /api/space` real (ver [[modulos/Space]]).
@@ -99,6 +125,7 @@ Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/fronten
 - [ ] [[modulos/Asesorias]] — en curso. ✅ Rol de asesor (`UserRole.Advisor`) y ✅ alta de cuenta (`RegisterAdvisorPage` en `/register/asesor`, campo `Profession` persistido vía migración `AddProfessionToApplicationUser`) — ver [[decisiones/ADR-0003-rol-asesor]]. Falta: agenda/reserva de sesión, pago asociado, conectar el listado de asesores de la landing (`Advisors.tsx`) a datos reales en vez de `mockAdvisors`, y vista de gestión del lado del asesor. Sigue pendiente el ajuste de `LoginModal.tsx` para el redirect post-login de `advisor`.
 - [ ] Chat en tiempo real (SignalR): `Conversation`/`Message`, habilitado por `Match` (ver [[modulos/Match]]). Incluye: crear el chat 1:1 en sí (mensajería) y la vista de lista de conversaciones múltiples en pantalla.
 - [x] Pantalla de descubrimiento/swipe para `GET /api/match/feed` + `POST /api/match/like` → `DiscoverPage.tsx` (`/descubrir`), ver [[modulos/Match]].
+- [x] **(2026-08-06)** Backend del módulo Confianza/Verificación de perfiles — sistema de puntaje 0-10 (10 ítems del docx del cliente, gateados por `MembershipTier` Freemium/Premium), `TrustController` (`/api/trust/status`, `/api/trust/items`) → `TrustService` → `TrustRepository`, migración `AddTrustVerification`. Frontend: insignia `TrustBadge.tsx` conectada en `ProfilePage.tsx`. Ver [[modulos/Confianza]] — falta UI para autodeclarar los ítems, insignia pública en Discover/Explorar, y definir el flujo de revisión de staff (depende del Módulo Admin, todavía no iniciado).
 
 ---
 
@@ -116,6 +143,17 @@ Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/fronten
 - [ ] Tipografía de marca: Playfair Display, Cormorant Garamond, Montserrat (hoy cae al stack por defecto de Tailwind).
 - [x] Navegación mobile: `FloatingNav.tsx` ahora renderiza también una bottom-nav fija (ícono + label) para viewports `< md`, en vez de desaparecer — la barra circular original sigue igual en `md` y superior. Mismos `navItems` (Inicio según rol, Mensajes, Asesorías) en ambas versiones.
 - [ ] Evaluar unificación de FloatingNav con el sidebar del Dashboard.
+- [ ] **(anotado 2026-08-06)** Reemplazar la validación manual de identidad (ítem 1 de [[modulos/Confianza]]) por un servicio de KYC/biometría automática (tipo Onfido/Veriff/Truora o validación biométrica RENAPER, como usan las apps bancarias) — pospuesto a propósito: el docx del cliente pedía comparación manual, suma un proveedor pago, y los datos biométricos son "datos sensibles" bajo la Ley 25.326 (requiere revisión legal antes de construirlo). Reevaluar cuando haya volumen real de usuarios.
+
+---
+
+## 💰 Optimización de costos (Azure, pendiente)
+
+- [ ] **(anotado 2026-08-03, pospuesto)** `SpaceRepository.GetActiveAsync()` / `SpaceService.GetActiveSpacesAsync()` traen **todos** los espacios activos sin límite. Tanto el preview del landing (`ExploreSpaces.tsx`, se queda solo con los primeros 3 vía `.slice()`) como potencialmente `ExploreSpacesPage.tsx` a futuro con catálogo grande, están trayendo de más. Ideas evaluadas para cuando se despliegue en Azure:
+	- `.Take(3)` (o un parámetro `take`/endpoint de preview) en la query de EF Core, para no traer el catálogo completo solo para mostrar 3 en el landing.
+	- `IMemoryCache` con TTL corto (2-5 min) en `SpaceService`, para no pegarle a Postgres en cada visita al landing/`/explorar` sin sesión. Preferido sobre un archivo en disco (efímero en App Service, no sobrevive reinicios/reescalados) y sobre un cache distribuido tipo Redis (agregaría un recurso de Azure pago, no se justifica al tamaño actual).
+	- Se descartó volver a mockear el preview del landing: el costo real de esta consulta puntual es insignificante comparado con tener la instancia de Postgres levantada; no vale la pena perder el dato en vivo por eso.
+	- Nota de costos: en Azure Database for PostgreSQL Flexible Server se factura por el tier de cómputo/storage contratado (uptime), no por consulta ni por columnas leídas — el ahorro real viene de reducir la cantidad de round-trips y el tamaño de cada uno a medida que crece el catálogo, no de "optimizar el SELECT" en sí.
 
 ---
 

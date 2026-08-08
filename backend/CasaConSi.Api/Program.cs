@@ -69,6 +69,10 @@ builder.Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
+// Servicios propios del módulo de Cuenta ("Mi perfil": nombre, email,
+// password, avatar — distinto del perfil de match, ver módulo de Perfiles abajo)
+builder.Services.AddScoped<IAccountService, AccountService>();
+
 // Servicios propios del módulo de Perfiles (cuestionario post-registro)
 builder.Services.AddScoped<CasaConSi.Api.Repositories.Interfaces.IProfileRepository, CasaConSi.Api.Repositories.ProfileRepository>();
 builder.Services.AddScoped<CasaConSi.Api.Services.Interfaces.IProfileService, CasaConSi.Api.Services.ProfileService>();
@@ -99,6 +103,8 @@ builder.Services.AddDataProtection()
 // después de reiniciar: hacía falta un segundo reinicio con wwwroot ya
 // presente en disco. Creándolo acá, antes de Build(), se evita depender de
 // ese "segundo reinicio".
+builder.Services.AddScoped<CasaConSi.Api.Repositories.Interfaces.ITrustRepository, CasaConSi.Api.Repositories.TrustRepository>();
+builder.Services.AddScoped<CasaConSi.Api.Services.Interfaces.ITrustService, CasaConSi.Api.Services.TrustService>();
 Directory.CreateDirectory(Path.Combine(builder.Environment.ContentRootPath, "wwwroot"));
 
 var app = builder.Build();
