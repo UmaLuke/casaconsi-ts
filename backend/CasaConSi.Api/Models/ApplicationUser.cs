@@ -8,6 +8,7 @@ public class ApplicationUser : IdentityUser
     public required string Name { get; set; }
     public required UserRole Role { get; set; }
     public string? Avatar { get; set; }
+    public List<string> GalleryPhotoPaths { get; set; } = new();
     public string? Title { get; set; }
     public Generation? Generation { get; set; }
     public string? Profession { get; set; }

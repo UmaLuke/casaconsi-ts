@@ -69,6 +69,39 @@ public class AccountController : ControllerBase
         }
     }
 
+    [HttpPost("gallery")]
+public async Task<ActionResult<AccountResponseDto>> AddGalleryPhoto([FromForm] IFormFile? photo)
+{
+    if (photo is null)
+    {
+        return BadRequest(new { message = "Falta el archivo de la foto." });
+    }
+
+    try
+    {
+        var response = await _accountService.AddGalleryPhotoAsync(CurrentUserId, photo);
+        return Ok(response);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return BadRequest(new { message = ex.Message });
+    }
+}
+
+    [HttpDelete("gallery")]
+    public async Task<ActionResult<AccountResponseDto>> RemoveGalleryPhoto([FromQuery] string photoUrl)
+    {
+        try
+        {
+            var response = await _accountService.RemoveGalleryPhotoAsync(CurrentUserId, photoUrl);
+            return Ok(response);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpPut("password")]
     public async Task<IActionResult> ChangePassword(ChangePasswordRequestDto request)
     {

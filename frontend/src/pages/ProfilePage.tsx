@@ -32,6 +32,7 @@ import { getTrustStatus} from "../services/trustService";
 import type { TrustStatus} from "../types/trust";
 import { TrustBadge } from "../components/common/TrustBadge";
 import { PremiumBadge } from "../components/common/PremiumBadge";
+import { PhotoGalleryCard } from '../components/features/profile/PhotoGalleryCard';
 
 type ProfileTab = 'cuenta' | 'seguridad' | 'match';
 
@@ -158,92 +159,96 @@ const AccountTab = ({ user, token, onUpdated }: { user: User; token: string; onU
   };
 
   return (
-    <div className="card bg-base-100 border border-base-200 shadow-sm max-w-xl">
-      <div className="card-body gap-6">
-        {/* Avatar + insignia de confianza */}
-        <div className="flex items-start justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-4">
-            <div className="avatar">
-              <div className="w-20 rounded-full ring ring-brand-teal ring-offset-base-100 ring-offset-2">
-                <img src={resolveAvatarUrl(user.avatar, user.name)} alt={`Avatar de ${user.name}`} />
+    <div className="space-y-6 max-w-xl">
+      <div className='card bg-base-100 border border-base-200 shadow-sm'>  
+        <div className="card-body gap-6">
+          {/* Avatar + insignia de confianza */}
+          <div className="flex items-start justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4">
+              <div className="avatar">
+                <div className="w-20 rounded-full ring ring-brand-teal ring-offset-base-100 ring-offset-2">
+                  <img src={resolveAvatarUrl(user.avatar, user.name)} alt={`Avatar de ${user.name}`} />
+                </div>
               </div>
+              <label className="btn btn-outline btn-sm gap-2">
+                {isUploadingAvatar ? <Loader2 className="size-4 animate-spin" /> : <Camera className="size-4" />}
+                Cambiar foto
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarChange}
+                  disabled={isUploadingAvatar}
+                />
+              </label>
             </div>
-            <label className="btn btn-outline btn-sm gap-2">
-              {isUploadingAvatar ? <Loader2 className="size-4 animate-spin" /> : <Camera className="size-4" />}
-              Cambiar foto
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleAvatarChange}
-                disabled={isUploadingAvatar}
-              />
-            </label>
+
+            {trustStatus && (
+              <div className="flex flex-col items-end gap-2">
+                <TrustBadge
+                  score={Math.min(trustStatus.score)}
+                  maxScore={trustStatus.maxScore}
+                  level={trustStatus.level}
+                  levelLabel={LEVEL_LABELS[trustStatus.level]}
+                />
+                <PremiumBadge achieved={trustStatus.level === 'alta_confianza'} />
+              </div>
+            )}
           </div>
 
-          {trustStatus && (
-            <div className="flex flex-col items-end gap-2">
-              <TrustBadge
-                score={Math.min(trustStatus.score)}
-                maxScore={trustStatus.maxScore}
-                level={trustStatus.level}
-                levelLabel={LEVEL_LABELS[trustStatus.level]}
-              />
-              <PremiumBadge achieved={trustStatus.level === 'alta_confianza'} />
+          {/* Nombre */}
+          <form onSubmit={handleSaveName} className="space-y-3">
+            <div className="form-control w-full">
+              <label className="label px-1 pb-2">
+                <span className="label-text font-semibold">Nombre completo</span>
+              </label>
+              <label className="input input-bordered flex items-center gap-3 w-full">
+                <UserIcon className="h-5 w-5 text-base-content/40" />
+                <input
+                  type="text"
+                  className="grow"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  disabled={isSavingName}
+                />
+              </label>
             </div>
-          )}
+
+            <div className="form-control w-full">
+              <label className="label px-1 pb-2">
+                <span className="label-text font-semibold">Correo electrónico</span>
+              </label>
+              <label className="input input-bordered flex items-center gap-3 w-full bg-base-200/60">
+                <Mail className="h-5 w-5 text-base-content/40" />
+                <input type="email" className="grow" value={user.email} disabled readOnly />
+              </label>
+              <span className="label-text-alt text-base-content/50 px-1 pt-1">
+                Para cambiar el correo, usá la pestaña "Seguridad".
+              </span>
+            </div>
+
+            <div className="form-control w-full">
+              <label className="label px-1 pb-2">
+                <span className="label-text font-semibold">Rol</span>
+              </label>
+              <span className="badge badge-lg capitalize">{ROLE_LABELS[user.role] ?? user.role}</span>
+            </div>
+
+            {message && (
+              <p className={`text-sm font-medium ${message.type === 'success' ? 'text-success' : 'text-error'}`}>
+                {message.text}
+              </p>
+            )}
+
+            <button type="submit" className="btn bg-brand-orange hover:bg-brand-orange/90 text-white border-none" disabled={isSavingName}>
+              {isSavingName ? <Loader2 className="size-4 animate-spin" /> : 'Guardar nombre'}
+            </button>
+          </form>
         </div>
-
-        {/* Nombre */}
-        <form onSubmit={handleSaveName} className="space-y-3">
-          <div className="form-control w-full">
-            <label className="label px-1 pb-2">
-              <span className="label-text font-semibold">Nombre completo</span>
-            </label>
-            <label className="input input-bordered flex items-center gap-3 w-full">
-              <UserIcon className="h-5 w-5 text-base-content/40" />
-              <input
-                type="text"
-                className="grow"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                disabled={isSavingName}
-              />
-            </label>
-          </div>
-
-          <div className="form-control w-full">
-            <label className="label px-1 pb-2">
-              <span className="label-text font-semibold">Correo electrónico</span>
-            </label>
-            <label className="input input-bordered flex items-center gap-3 w-full bg-base-200/60">
-              <Mail className="h-5 w-5 text-base-content/40" />
-              <input type="email" className="grow" value={user.email} disabled readOnly />
-            </label>
-            <span className="label-text-alt text-base-content/50 px-1 pt-1">
-              Para cambiar el correo, usá la pestaña "Seguridad".
-            </span>
-          </div>
-
-          <div className="form-control w-full">
-            <label className="label px-1 pb-2">
-              <span className="label-text font-semibold">Rol</span>
-            </label>
-            <span className="badge badge-lg capitalize">{ROLE_LABELS[user.role] ?? user.role}</span>
-          </div>
-
-          {message && (
-            <p className={`text-sm font-medium ${message.type === 'success' ? 'text-success' : 'text-error'}`}>
-              {message.text}
-            </p>
-          )}
-
-          <button type="submit" className="btn bg-brand-orange hover:bg-brand-orange/90 text-white border-none" disabled={isSavingName}>
-            {isSavingName ? <Loader2 className="size-4 animate-spin" /> : 'Guardar nombre'}
-          </button>
-        </form>
       </div>
+
+      <PhotoGalleryCard user={user} token={token} onUpdated={onUpdated} />
     </div>
   );
 };

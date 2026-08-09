@@ -57,6 +57,20 @@ Desde el 2026-08-06, `DemoProfileSeeder` también siembra `ProfileVerification` 
 
 Las 6 cuentas quedaron en `MembershipTier.Freemium`, así que hoy **ninguna muestra el `PremiumBadge`** (el ícono `BadgeCheck` de lucide que pidió el cliente) — ese estado todavía no se probó visualmente. Para probarlo: cambiar `MembershipTier.Freemium` → `MembershipTier.Premium` en al menos una de las entradas con `TrustScore` > 6 (Sofía, Rosa o Elena, las candidatas naturales porque ya tienen el puntaje) en `DemoProfileSeeder.cs`, borrar esa cuenta de la base (ver el gotcha de `ProfileLikes`/`Matches` con `Restrict` en [[modulos/Confianza]] — no alcanza con un `DELETE` directo si ya tiene matches/likes) y reiniciar `dotnet run` para que el seeder la recree. Carlos se dejó a propósito en Freemium/bajo como ejemplo de "recién empezando".
 
+## Fotos demo (Data/DemoAssets)
+
+Los `.jpg` de `backend/CasaConSi.Api/Data/DemoAssets/` son la fuente que `DemoProfileSeeder` copia a `wwwroot/uploads/` en cada usuario demo (ver `CopyDemoProfilePhoto`). No es un servicio de subida — no genera nombres únicos tipo GUID como sí hace `FileStorageService.SaveAsync` (usado en subidas reales de avatar/perfil/space, que arma `{Guid.NewGuid()}{extensión}` para evitar colisiones). Acá el nombre de archivo es fijo y versionado a mano, así que si dos hosts usan el mismo nombre fuente, terminan mostrando literalmente la misma imagen (no es "conflicto de nombres" en disco — cada host tiene su propia carpeta `profiles/{userId}/` — es reuso intencional o accidental de la misma foto).
+
+Estado 2026-08-08:
+
+| Cuenta        | Foto de perfil     | Fotos de casa                             | Origen                    |
+| ------------- | ------------------- | ------------------------------------------ | ------------------------- |
+| Elena Ruiz    | `elena-ruiz.jpg`     | `elena-casa.jpg` (frente), `elena-living.jpg`, `elena-cocina.jpg`, `elena-habitacion.jpg` | Fotos reales, propias de Elena (set completo) |
+| Rosa Martínez | `rosa-martinez.jpg`  | `casa-living.jpg`, `casa-cocina.jpg`, `casa-bano.jpg`, `casa-habitacion.jpg` | Placeholders genéricos compartidos |
+| Carlos Díaz   | `carlos-diaz.jpg`    | mismos 4 `casa-*.jpg` de arriba            | Placeholders genéricos compartidos |
+
+Regla al sumar fotos reales a otra cuenta: darle nombre de archivo propio (`{nombre}-{algo}.jpg`), no pisar `casa-*.jpg` a menos que la intención sea cambiar el placeholder para los tres a la vez.
+
 ## Enlaces relacionados
 - [[modulos/Perfiles]]
 - [[modulos/Space]]

@@ -19,6 +19,7 @@ interface AccountResponseDto {
   profession: string | null;
   generation: User['generation'] | null;
   isAdmin: boolean;
+  gallery: string[];
 }
 
 const toUser = (dto: AccountResponseDto): User => ({
@@ -31,6 +32,7 @@ const toUser = (dto: AccountResponseDto): User => ({
   profession: dto.profession ?? undefined,
   generation: dto.generation ?? undefined,
   isAdmin: dto.isAdmin,
+  gallery: dto.gallery,
 });
 
 const authHeaders = (token: string): HeadersInit => ({ Authorization: `Bearer ${token}` });
@@ -100,6 +102,26 @@ export const changeEmail = async (
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
     body: JSON.stringify({ newEmail, currentPassword }),
+  });
+  return handleAccountResponse(response);
+};
+
+export const uploadGalleryPhoto = async (photo: File, token: string): Promise<User> => {
+  const formData = new FormData();
+  formData.append('photo', photo);
+
+  const response = await fetch(`${API_URL}/api/account/gallery`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: formData,
+  });
+  return handleAccountResponse(response);
+};
+
+export const removeGalleryPhoto = async (photoUrl: string, token: string): Promise<User> => {
+  const response = await fetch(`${API_URL}/api/account/gallery?photoUrl=${encodeURIComponent(photoUrl)}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
   });
   return handleAccountResponse(response);
 };

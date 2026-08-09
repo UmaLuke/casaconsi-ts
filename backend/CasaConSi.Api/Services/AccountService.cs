@@ -96,6 +96,41 @@ public class AccountService : IAccountService
         return user;
     }
 
+    private const int MaxGalleryPhotos = 10;
+
+    public async Task<AccountResponseDto> AddGalleryPhotoAsync(string userId, IFormFile photo)
+    {
+        var user = await FindUserOrThrowAsync(userId);
+
+        if (user.GalleryPhotoPaths.Count >= MaxGalleryPhotos)
+        {
+            throw new InvalidOperationException($"Máximo {MaxGalleryPhotos} fotos en la galería.");
+        }
+
+        var relativePath = await _fileStorageService.SaveAsync(photo, $"gallery/{userId}");
+        user.GalleryPhotoPaths.Add(relativePath);
+
+        var result = await _userManager.UpdateAsync(user);
+        ThrowIfFailed(result);
+
+        return await ToDtoAsync(user);
+    }
+
+    public async Task<AccountResponseDto> RemoveGalleryPhotoAsync(string userId, string photoUrl)
+    {
+        var user = await FindUserOrThrowAsync(userId);
+
+        var relativePath = photoUrl.StartsWith("/uploads/") ? photoUrl["/uploads/".Length..] : photoUrl;
+        if (!user.GalleryPhotoPaths.Remove(relativePath))
+        {
+            throw new InvalidOperationException("La foto no pertenece a la galería de este usuario.");
+        }
+
+        var result = await _userManager.UpdateAsync(user);
+        ThrowIfFailed(result);
+
+        return await ToDtoAsync(user);
+    }
     private static void ThrowIfFailed(IdentityResult result)
     {
         if (!result.Succeeded)
@@ -118,6 +153,7 @@ public class AccountService : IAccountService
             Profession = user.Profession,
             Generation = user.Generation,
             IsAdmin = isAdmin,
+            Gallery = user.GalleryPhotoPaths.Select(p => ToUrl(p)!).ToList(),
         };
     }
 

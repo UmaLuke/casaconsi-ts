@@ -10,3 +10,5 @@ export const resolveAvatarUrl = (avatar: string | undefined, name: string): stri
   avatar
     ? `${API_URL}${avatar}`
     : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
+
+export const resolveUploadedFileUrl = (path: string): string => `${API_URL}${path}`;

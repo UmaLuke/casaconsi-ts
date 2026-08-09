@@ -86,6 +86,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.HasOne<ApplicationUser>().WithMany().HasForeignKey(m => m.HostUserId).OnDelete(DeleteBehavior.Restrict);
         });
 
+        // Default en Postgres (array vacío) para que ALTER TABLE no falle con
+        // usuarios ya existentes al agregar la columna (ver migración
+        // AddGalleryPhotoPathsToApplicationUser).
+        builder.Entity<ApplicationUser>(entity =>
+        {
+            entity.Property(u => u.GalleryPhotoPaths).HasDefaultValueSql("ARRAY[]::text[]");
+        });
+
         // Acá van las configuraciones de Space, etc. cuando llegue ese módulo
         builder.Entity<Space>(entity =>
         {

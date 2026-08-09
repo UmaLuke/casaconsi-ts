@@ -430,11 +430,14 @@ public static class DemoProfileSeeder
         public int TrustScore { get; init; } = 6; // 0..10, ver ApplyTrustScore
         // Fotos: mismo mecanismo que StudentSeed.ProfilePhotoFileName — se
         // copian desde Data/DemoAssets/ a wwwroot/uploads/profiles/{userId}/
-        // vía CopyDemoProfilePhoto. HomePhotoFileNames son placeholders
-        // genéricos compartidos entre los 3 hosts demo (no hay fotos reales
-        // de cada casa) — reemplazar por fotos reales cuando existan, sin
-        // tocar código: solo pisar los .jpg en Data/DemoAssets con el mismo
-        // nombre de archivo.
+        // vía CopyDemoProfilePhoto. HomePhotoFileNames apunta a archivos en
+        // Data/DemoAssets/; Rosa y Carlos todavía comparten el pool genérico
+        // casa-*.jpg (placeholders, no hay fotos reales de sus casas todavía).
+        // Elena tiene fotos propias (elena-casa.jpg, elena-living.jpg) — al
+        // sumarle fotos reales a otro host, no reusar un nombre ya usado por
+        // otro (ver CopyDemoProfilePhoto: cada host tiene su propia carpeta
+        // profiles/{userId}/, pero el archivo FUENTE en Data/DemoAssets/ es
+        // compartido si el nombre coincide).
         public required string ProfilePhotoFileName { get; init; }
         public List<string> HomePhotoFileNames { get; init; } = new();
         public string ContactPhone { get; init; } = "3511234567";
@@ -711,7 +714,10 @@ public static class DemoProfileSeeder
             Generation = Generation.AdultoMayor,
             MembershipTier = MembershipTier.Freemium, TrustScore = 8,
             ProfilePhotoFileName = "elena-ruiz.jpg",
-            HomePhotoFileNames = new() { "casa-living.jpg", "casa-cocina.jpg", "casa-bano.jpg", "casa-habitacion.jpg" },
+            // Únicas fotos reales propias entre los hosts demo (las otras dos
+            // siguen con el pool genérico casa-*.jpg) — por eso nombre de
+            // archivo propio en vez de compartir el de Rosa/Carlos.
+            HomePhotoFileNames = new() { "elena-casa.jpg", "elena-living.jpg", "elena-cocina.jpg", "elena-habitacion.jpg" },
             FamilyReferenceName = "Pablo Ruiz",
             FamilyReferenceRelationship = "Hijo",
             ProfessionOrEducation = "Jubilada, ex profesora universitaria",

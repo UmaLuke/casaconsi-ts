@@ -10,4 +10,6 @@ public interface IAccountService
     Task<AccountResponseDto> UpdateAvatarAsync(string userId, IFormFile avatar);
     Task ChangePasswordAsync(string userId, ChangePasswordRequestDto request);
     Task<AccountResponseDto> ChangeEmailAsync(string userId, ChangeEmailRequestDto request);
+    Task<AccountResponseDto> AddGalleryPhotoAsync(string userId, IFormFile photo);
+    Task<AccountResponseDto> RemoveGalleryPhotoAsync(string userId, string photoUrl);
 }

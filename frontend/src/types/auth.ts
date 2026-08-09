@@ -12,6 +12,7 @@ export interface User {
   profession?: string; 
   generation?: Generation;
   isAdmin: boolean; 
+  gallery: string[];
 }
 
 export interface AuthContextValue {
