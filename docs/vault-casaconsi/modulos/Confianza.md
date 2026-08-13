@@ -67,6 +67,30 @@ Lucía pidió que hubiera **dos** insignias distintas — una para Básico y otr
 - `pages/ProfilePage.tsx`, pestaña "Datos de cuenta" (`AccountTab`): renderiza los dos apilados (`flex-col items-end gap-2`) a la derecha del avatar — `<TrustBadge>` arriba, `<PremiumBadge>` debajo (sin ocupar espacio si `achieved` es `false`).
 - **Todavía no implementado:** UI para que el usuario marque los ítems (el `PUT /api/trust/items` existe en el backend pero ningún form lo llama todavía), insignia pública en `DiscoverPage.tsx`/`ExploreSpacesPage.tsx`/`SpaceDetailsModal.tsx` para que la otra parte vea el nivel de confianza del perfil que está mirando.
 
+## Interacciones
+
+**Backend:** `TrustController` (`/api/trust`, `[Authorize]`) → `TrustService` → `TrustRepository`. `TrustService` también usa `UserManager<ApplicationUser>` (lee `MembershipTier`/`IsDemoUser`).
+
+| Endpoint | Service / método |
+|---|---|
+| `GET /api/trust/status` | `GetStatusAsync` → `BuildResponse` (calcula `score`/`level`) |
+| `PUT /api/trust/items` | `UpdateItemsAsync` (gatea ítems 7-10 por `MembershipTier`) |
+
+**Frontend:** `services/trustService.ts` (`getTrustStatus`) — vía `apiFetch`, ver [[../convenciones/http-client|convenciones/http-client]]. `PUT /api/trust/items` todavía no tiene consumidor en el frontend (ver "Todavía no implementado" arriba).
+
+| Componente/página | Función usada | Contexto |
+|---|---|---|
+| `pages/ProfilePage.tsx` (`AccountTab`) | `getTrustStatus` | Renderiza `TrustBadge` + `PremiumBadge` junto al avatar |
+
+```
+ProfilePage.tsx (AccountTab, useEffect al montar)
+  → getTrustStatus(token)                        [trustService.ts]
+    → apiFetch('/api/trust/status', ...)           [httpClient.ts]
+      → TrustController.GetStatus → TrustService.GetStatusAsync → TrustRepository
+    ← TrustStatusResponseDto { score, level, membershipTier, items[] }
+  → <TrustBadge score={...} level={...} /> + <PremiumBadge achieved={...} />
+```
+
 ## Datos de prueba
 `DemoProfileSeeder` siembra `ProfileVerification` para las 6 cuentas demo (además de `MembershipTier`/`IsDemoUser` en el `ApplicationUser`), vía el helper `ApplyTrustScore` — completa los ítems 1..N en el orden fijo del docx, **cappeado a 6 si el tier es Freemium** (los ítems 7-10 son exclusivos de Premium, ver más arriba).
 

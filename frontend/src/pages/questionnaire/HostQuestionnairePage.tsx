@@ -16,8 +16,18 @@ import { ProfileError, getHostProfile, submitHostQuestionnaire, toHostQuestionna
 
 export const HostQuestionnairePage = () => {
   const navigate = useNavigate();
-  const { token } = useAuth();
-  const [formData, setFormData] = useState<HostQuestionnaireData>(createEmptyHostQuestionnaire());
+  const { token, user } = useAuth();
+  // Precarga nombre y email desde la cuenta recién creada (RegisterForm) para
+  // no pedirlos de nuevo acá — se pisan igual si ya había un perfil guardado
+  // (ver el useEffect de abajo) o si la persona los edita a mano.
+  const [formData, setFormData] = useState<HostQuestionnaireData>(() => {
+    const empty = createEmptyHostQuestionnaire();
+    if (user) {
+      empty.personalData.fullName = user.name;
+      empty.personalData.contactEmail = user.email;
+    }
+    return empty;
+  });
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [hadExistingProfile, setHadExistingProfile] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

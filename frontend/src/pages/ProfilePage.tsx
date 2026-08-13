@@ -5,7 +5,8 @@
 // wizard (`/cuestionario/*`, primera vez post-registro), pero cubre la
 // re-edición sin salir de "Mi perfil".
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
-import { User as UserIcon, Mail, Lock, Camera, Loader2, ShieldCheck, FileEdit } from 'lucide-react';
+import { User as UserIcon, Mail, Camera, Loader2, ShieldCheck, FileEdit } from 'lucide-react';
+import { PasswordInput } from '../components/common/PasswordInput';
 import { Header } from '../components/layout/Header';
 import { Footer } from '../components/layout/Footer';
 import { useAuth } from '../hooks/useAuth';
@@ -305,31 +306,21 @@ const SecurityTab = ({ token, onUpdated }: { token: string; onUpdated: (u: User)
         <div className="card-body gap-4">
           <h2 className="card-title text-base">Cambiar contraseña</h2>
           <form onSubmit={handleChangePassword} className="space-y-3">
-            <label className="input input-bordered flex items-center gap-3 w-full">
-              <Lock className="h-5 w-5 text-base-content/40" />
-              <input
-                type="password"
-                className="grow"
-                placeholder="Contraseña actual"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                required
-                disabled={isChangingPassword}
-              />
-            </label>
-            <label className="input input-bordered flex items-center gap-3 w-full">
-              <Lock className="h-5 w-5 text-base-content/40" />
-              <input
-                type="password"
-                className="grow"
-                placeholder="Nueva contraseña (mín. 8)"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-                minLength={8}
-                disabled={isChangingPassword}
-              />
-            </label>
+            <PasswordInput
+              placeholder="Contraseña actual"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              required
+              disabled={isChangingPassword}
+            />
+            <PasswordInput
+              placeholder="Nueva contraseña (mín. 8)"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              required
+              minLength={8}
+              disabled={isChangingPassword}
+            />
             {passwordMessage && (
               <p className={`text-sm font-medium ${passwordMessage.type === 'success' ? 'text-success' : 'text-error'}`}>
                 {passwordMessage.text}
@@ -359,18 +350,13 @@ const SecurityTab = ({ token, onUpdated }: { token: string; onUpdated: (u: User)
                 disabled={isChangingEmail}
               />
             </label>
-            <label className="input input-bordered flex items-center gap-3 w-full">
-              <Lock className="h-5 w-5 text-base-content/40" />
-              <input
-                type="password"
-                className="grow"
-                placeholder="Contraseña actual"
-                value={emailPassword}
-                onChange={(e) => setEmailPassword(e.target.value)}
-                required
-                disabled={isChangingEmail}
-              />
-            </label>
+            <PasswordInput
+              placeholder="Contraseña actual"
+              value={emailPassword}
+              onChange={(e) => setEmailPassword(e.target.value)}
+              required
+              disabled={isChangingEmail}
+            />
             {emailMessage && (
               <p className={`text-sm font-medium ${emailMessage.type === 'success' ? 'text-success' : 'text-error'}`}>
                 {emailMessage.text}

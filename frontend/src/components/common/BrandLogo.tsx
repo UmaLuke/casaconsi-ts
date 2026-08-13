@@ -2,7 +2,7 @@
 
 export const BrandLogo = () => {
   return (
-    <div className="flex items-center hover:opacity-90 transition-opacity">
+    <div className="flex items-center gap-3 hover:opacity-90 transition-opacity">
       <img
         src="/L.svg"
         alt="Logo Casa con SI"

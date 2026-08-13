@@ -2,10 +2,10 @@
 // Espejo del patrón de authService.ts. A diferencia de Auth, estos son los
 // primeros endpoints protegidos que consume el frontend: todo request lleva
 // el header Authorization con el JWT (ver AuthContext / useAuth).
-import { API_URL } from '../config';
 import type { StudentQuestionnaireData } from '../types/questionnaire-student';
 import type { HostQuestionnaireData } from '../types/questionnaire-host';
 import { deriveGenerationFromBirthDate } from '../utils/generation';
+import { apiFetch } from './httpClient';
 
 export class ProfileError extends Error {}
 
@@ -166,7 +166,7 @@ const handleProfileResponse = async <T>(response: Response): Promise<T> => {
 };
 
 export const getProfileStatus = async (token: string): Promise<ProfileStatusResponseDto> => {
-  const response = await fetch(`${API_URL}/api/profile/status`, {
+  const response = await apiFetch(`/api/profile/status`, {
     headers: authHeaders(token),
   });
   return handleProfileResponse<ProfileStatusResponseDto>(response);
@@ -181,7 +181,7 @@ const toProfileOrNull = async <T>(response: Response): Promise<T | null> =>
 
 /** Trae el perfil de estudiante ya guardado, o null si todavía no lo completó. */
 export const getStudentProfile = async (token: string): Promise<StudentProfileResponseDto | null> => {
-  const response = await fetch(`${API_URL}/api/profile/student`, {
+  const response = await apiFetch(`/api/profile/student`, {
     headers: authHeaders(token),
   });
   return toProfileOrNull<StudentProfileResponseDto>(response);
@@ -189,7 +189,7 @@ export const getStudentProfile = async (token: string): Promise<StudentProfileRe
 
 /** Trae el perfil de anfitrión ya guardado, o null si todavía no lo completó. */
 export const getHostProfile = async (token: string): Promise<HostProfileResponseDto | null> => {
-  const response = await fetch(`${API_URL}/api/profile/host`, {
+  const response = await apiFetch(`/api/profile/host`, {
     headers: authHeaders(token),
   });
   return toProfileOrNull<HostProfileResponseDto>(response);
@@ -263,7 +263,7 @@ const uploadStudentPhotos = async (
   if (profilePhoto) formData.append('profilePhoto', profilePhoto);
   if (presentationMedia) formData.append('presentationMedia', presentationMedia);
 
-  const response = await fetch(`${API_URL}/api/profile/student/photos`, {
+  const response = await apiFetch(`/api/profile/student/photos`, {
     method: 'POST',
     // Sin 'Content-Type': el browser arma el boundary de multipart solo.
     headers: authHeaders(token),
@@ -284,7 +284,7 @@ const uploadHostPhotos = async (
   if (presentationMedia) formData.append('presentationMedia', presentationMedia);
   homeAndRoomPhotos.forEach((photo) => formData.append('homeAndRoomPhotos', photo));
 
-  const response = await fetch(`${API_URL}/api/profile/host/photos`, {
+  const response = await apiFetch(`/api/profile/host/photos`, {
     method: 'POST',
     headers: authHeaders(token),
     body: formData,
@@ -297,7 +297,7 @@ export const submitStudentQuestionnaire = async (
   data: StudentQuestionnaireData,
   token: string,
 ): Promise<StudentProfileResponseDto> => {
-  const response = await fetch(`${API_URL}/api/profile/student`, {
+  const response = await apiFetch(`/api/profile/student`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
     body: JSON.stringify(toStudentPayload(data)),
@@ -312,7 +312,7 @@ export const submitHostQuestionnaire = async (
   data: HostQuestionnaireData,
   token: string,
 ): Promise<HostProfileResponseDto> => {
-  const response = await fetch(`${API_URL}/api/profile/host`, {
+  const response = await apiFetch(`/api/profile/host`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
     body: JSON.stringify(toHostPayload(data)),

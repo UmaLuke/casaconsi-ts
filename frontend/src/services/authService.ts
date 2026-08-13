@@ -1,8 +1,8 @@
 // src/services/authService.ts
-import { API_URL } from '../config';
 import type { RegisterFormData } from '../components/features/auth/RegisterForm';
 import type { LoginFormData } from '../components/features/auth/LoginForm';
 import type { User } from '../types/auth';
+import { apiFetch } from './httpClient';
 
 export interface AuthResult {
   user: User;
@@ -21,6 +21,7 @@ interface AuthResponseDto {
   profession: string | null;
   generation: User['generation'] | null;
   isAdmin: boolean; // nuevo
+  gallery: string[];
   token: string;
   expiresAt: string;
 }
@@ -38,6 +39,7 @@ const toAuthResult = (dto: AuthResponseDto): AuthResult => ({
     profession: dto.profession ?? undefined,
     generation: dto.generation ?? undefined,
     isAdmin: dto.isAdmin, // nuevo
+    gallery: dto.gallery,
   },
   token: dto.token,
   expiresAt: dto.expiresAt,
@@ -54,7 +56,7 @@ const handleAuthResponse = async (response: Response): Promise<AuthResult> => {
 };
 
 export const registerRequest = async (data: RegisterFormData): Promise<AuthResult> => {
-  const response = await fetch(`${API_URL}/api/auth/register`, {
+  const response = await apiFetch(`/api/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -63,7 +65,7 @@ export const registerRequest = async (data: RegisterFormData): Promise<AuthResul
 };
 
 export const loginRequest = async (data: LoginFormData): Promise<AuthResult> => {
-  const response = await fetch(`${API_URL}/api/auth/login`, {
+  const response = await apiFetch(`/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),

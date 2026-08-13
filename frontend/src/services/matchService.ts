@@ -6,8 +6,8 @@
 // (POST /api/match/like) — esta última se usa tanto desde DiscoverPage
 // (swipe sobre el feed) como desde ExploreSpacesPage/SpaceDetailsModal
 // (like/pass sobre el anfitrión dueño de un Space).
-import { API_URL } from '../config';
 import type { MatchSummary, LikeResponse, MatchFeedItem } from '../types/match';
+import { apiFetch } from './httpClient';
 
 export class MatchError extends Error {}
 
@@ -76,7 +76,7 @@ const toFeedItem = (dto: MatchFeedItemDto): MatchFeedItem => ({
 });
 
 export const getMatches = async (token: string): Promise<MatchSummary[]> => {
-  const response = await fetch(`${API_URL}/api/match`, {
+  const response = await apiFetch(`/api/match`, {
     headers: authHeaders(token),
   });
   const dtos = await handleMatchResponse<MatchSummaryDto[]>(
@@ -91,7 +91,7 @@ export const getMatches = async (token: string): Promise<MatchSummary[]> => {
 // en el backend). Si el usuario autenticado no completó el cuestionario
 // (Generation == null), el backend responde 400 con un mensaje claro.
 export const getFeed = async (token: string): Promise<MatchFeedItem[]> => {
-  const response = await fetch(`${API_URL}/api/match/feed`, {
+  const response = await apiFetch(`/api/match/feed`, {
     headers: authHeaders(token),
   });
   const dtos = await handleMatchResponse<MatchFeedItemDto[]>(
@@ -110,7 +110,7 @@ export const registerLikeDecision = async (
   targetUserId: string,
   liked: boolean,
 ): Promise<LikeResponse> => {
-  const response = await fetch(`${API_URL}/api/match/like`, {
+  const response = await apiFetch(`/api/match/like`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

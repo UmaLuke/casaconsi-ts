@@ -1,7 +1,8 @@
 // src/components/features/auth/RegisterForm.tsx
 import { useState, type FormEvent } from 'react';
-import { Mail, Lock, User, Loader2, Home, GraduationCap } from 'lucide-react';
+import { Mail, User, Loader2, Home, GraduationCap } from 'lucide-react';
 import type {UserRole} from '../../../types/auth';
+import { PasswordInput } from '../../common/PasswordInput';
 
 export interface RegisterFormData {
   name: string;
@@ -110,21 +111,16 @@ export const RegisterForm = ({ onSubmit, isLoading = false }: RegisterFormProps)
           <label className="label px-1 pt-0 pb-2">
             <span className="label-text font-semibold text-base-content/90">Contraseña</span>
           </label>
-          <label className="input input-bordered flex items-center gap-3 w-full focus-within:outline-brand-teal transition-all bg-base-100">
-            <Lock className="h-5 w-5 text-base-content/40" />
-            <input 
-              type="password" 
-              className="grow" 
-              placeholder="Mínimo 8 caracteres" 
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              required
-              minLength={8}
-              pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}"
-              title="Debe tener al menos 8 caracteres, con una mayúscula, una minúscula, un número y un símbolo."
-              disabled={isLoading}
-            />
-          </label>
+          <PasswordInput
+            placeholder="Mínimo 8 caracteres"
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            required
+            minLength={8}
+            pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}"
+            title="Debe tener al menos 8 caracteres, con una mayúscula, una minúscula, un número y un símbolo."
+            disabled={isLoading}
+          />
           <span className="label-text-alt text-base-content/50 px-1 pt-1">
             Al menos 8 caracteres, con mayúscula, minúscula, número y un símbolo (ej: !@#$).
           </span>

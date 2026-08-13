@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from './auth-context';
 import type { User } from '../types/auth';
+import { UNAUTHORIZED_EVENT } from '../services/httpClient';
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -80,6 +81,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return () => {
       if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Complemento del auto-logout por expiresAt: cubre el caso en que el
+  // backend invalida el token antes de que venza (ban, cambio de rol, etc.).
+  // httpClient.ts dispara este evento en cualquier response 401.
+  useEffect(() => {
+    const handleUnauthorized = () => logout();
+    window.addEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
+    return () => window.removeEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

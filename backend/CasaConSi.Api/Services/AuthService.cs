@@ -72,8 +72,14 @@ public class AuthService : IAuthService
             Profession = user.Profession,
             Generation = user.Generation,
             IsAdmin = isAdmin,
+            Gallery = user.GalleryPhotoPaths.Select(p => ToUrl(p)!).ToList(),
             Token = token,
             ExpiresAt = expiresAt,
         };
     }
+
+    // Espejo de AccountService.ToUrl — FileStorageService.SaveAsync devuelve
+    // una ruta relativa a wwwroot/uploads, servida vía app.UseStaticFiles() (Program.cs).
+    private static string? ToUrl(string? relativePath) =>
+        relativePath is null ? null : $"/uploads/{relativePath}";
 }

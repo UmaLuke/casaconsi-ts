@@ -46,59 +46,61 @@ export const MessagesPage = () => {
         <div className="container mx-auto px-4 md:px-6 space-y-14">
           {/* Sección Match's */}
           <section>
-            <div className="mb-6 space-y-2">
-              <h1 className="text-3xl md:text-4xl font-extrabold text-base-content tracking-tight">
-                Match&apos;s
-              </h1>
-              <p className="text-base-content/70 text-lg max-w-2xl font-medium">
-                Aquí podrás ver tus conexiones.
-              </p>
-            </div>
-
-            {isLoading ? (
-              <div className="flex justify-center py-16">
-                <span className="loading loading-spinner loading-lg text-brand-teal" />
-              </div>
-            ) : error ? (
-              <div className="text-center py-16 px-4 border-2 border-dashed border-error/40 rounded-2xl">
-                <p className="text-lg font-medium text-error">{error}</p>
-              </div>
-            ) : matches.length === 0 ? (
-              <div className="text-center py-16 px-4 border-2 border-dashed border-base-300 rounded-2xl">
-                <Heart className="size-10 mx-auto text-base-content/30 mb-4" />
-                <p className="text-lg font-medium text-base-content/60">
-                  Todavía no tenés matches confirmados.
+            <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-8">
+              <div className="space-y-2 md:shrink-0">
+                <h1 className="text-3xl md:text-4xl font-extrabold text-base-content tracking-tight">
+                  Match&apos;s
+                </h1>
+                <p className="text-base-content/70 text-lg max-w-2xl font-medium">
+                  Aquí podrás ver tus conexiones.
                 </p>
               </div>
-            ) : (
-              <div className="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory">
-                {matches.map((match) => (
-                  <div
-                    key={match.id}
-                    className="snap-start shrink-0 w-36 flex flex-col items-center gap-2 p-4 rounded-2xl border border-base-200 bg-base-100 shadow-sm"
-                  >
-                    <div className="avatar">
-                      <div className="w-20 rounded-full ring ring-brand-teal/30 ring-offset-2 ring-offset-base-100 bg-base-200">
-                        {match.counterpartPhotoUrl ? (
-                          <img
-                            src={`${API_URL}${match.counterpartPhotoUrl}`}
-                            alt={match.counterpartName}
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="flex items-center justify-center w-full h-full">
-                            <UserIcon className="size-8 text-base-content/40" />
-                          </div>
-                        )}
+
+              {isLoading ? (
+                <div className="flex justify-center items-center py-16 rounded-2xl border border-base-200 md:flex-1">
+                  <span className="loading loading-spinner loading-lg text-brand-teal" />
+                </div>
+              ) : error ? (
+                <div className="text-center py-16 px-4 border-2 border-dashed border-error/40 rounded-2xl md:flex-1">
+                  <p className="text-lg font-medium text-error">{error}</p>
+                </div>
+              ) : matches.length === 0 ? (
+                <div className="text-center py-16 px-4 border-2 border-dashed border-base-300 rounded-2xl md:flex-1">
+                  <Heart className="size-10 mx-auto text-base-content/30 mb-4" />
+                  <p className="text-lg font-medium text-base-content/60">
+                    Todavía no tenés matches confirmados.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex gap-4 overflow-x-auto p-4 rounded-2xl border border-base-200 snap-x snap-mandatory md:flex-1">
+                  {matches.map((match) => (
+                    <div
+                      key={match.id}
+                      className="snap-start shrink-0 w-36 flex flex-col items-center gap-2 p-4 rounded-2xl border border-base-200 bg-base-100 shadow-sm"
+                    >
+                      <div className="avatar">
+                        <div className="w-20 rounded-full ring ring-brand-teal/30 ring-offset-2 ring-offset-base-100 bg-base-200">
+                          {match.counterpartPhotoUrl ? (
+                            <img
+                              src={`${API_URL}${match.counterpartPhotoUrl}`}
+                              alt={match.counterpartName}
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center w-full h-full">
+                              <UserIcon className="size-8 text-base-content/40" />
+                            </div>
+                          )}
+                        </div>
                       </div>
+                      <span className="text-sm font-semibold text-center truncate w-full">
+                        {match.counterpartName}
+                      </span>
                     </div>
-                    <span className="text-sm font-semibold text-center truncate w-full">
-                      {match.counterpartName}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
           </section>
 
           {/* Sección Mensajes */}

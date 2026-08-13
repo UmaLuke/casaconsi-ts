@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "dd932bb3d03b5028",
+        "id": "f84a1eb8317cbf9f",
         "type": "tabs",
         "children": [
           {
-            "id": "1df5c3537ff65fba",
+            "id": "d6149cd57eeeb5f0",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -20,8 +20,19 @@
               "icon": "lucide-file",
               "title": "datos-demo"
             }
+          },
+          {
+            "id": "b748ad3009e0439d",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Vista gráfica"
+            }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -171,22 +182,24 @@
       "command-palette:Abrir paleta de comandos": false
     }
   },
-  "active": "1df5c3537ff65fba",
+  "active": "b748ad3009e0439d",
   "lastOpenFiles": [
+    "modulos/Confianza.md",
+    "datos-demo.md",
+    "Cuenta creada.md",
+    "modulos/Cuenta.md",
+    "modulos/Match.md.tmp.4472.0f99dc354dba",
+    "modulos/Space.md.tmp.4472.c71f14dc03e9",
+    "modulos/Perfiles.md.tmp.4472.1adf5dd7498d",
+    "modulos/Cuenta.md.tmp.4472.f0b4a2135429",
+    "convenciones/http-client.md",
     "datos-demo.md.tmp.11944.c9d6a33f58ec",
     "modulos/Confianza.md.tmp.18852.5bf2748fd40d",
-    "modulos/Cuenta.md",
     "convenciones/frontend.md",
-    "datos-demo.md",
     "00-Roadmap.md.tmp.15032.887cdb40636f",
     "Sin título.base",
     "00-Roadmap.md.tmp.18108.4b4595bf28ba",
     "modulos/Space.md.tmp.18108.996f43861daa",
-    "datos-demo.md.tmp.24544.fdfe22449ea2",
-    "modulos/Cuenta.md.tmp.23508.046a3f09b307",
-    "00-Roadmap.md.tmp.7360.819f668697a9",
-    "modulos/Perfiles.md.tmp.7360.ed02f6c2a49e",
-    "00-Roadmap.md.tmp.18412.c9ab34d1fe0b",
     "modulos/Perfiles.md",
     "modulos/Auth.md",
     "00-Roadmap.md",

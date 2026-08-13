@@ -116,7 +116,7 @@ export const Header = () => {
             </div>
           ) : (
             <>
-              <button onClick={openLoginModal} className="btn btn-ghost btn-sm md:btn-md hidden sm:flex text-white hover:bg-white/10 transition-colors">
+              <button onClick={openLoginModal} className="btn btn-ghost btn-sm md:btn-md flex text-white hover:bg-white/10 transition-colors">
                 Iniciar Sesión
               </button>
               <Link to="/register" className="btn bg-brand-orange hover:bg-brand-orange/90 text-white border-none btn-sm md:btn-md shadow-md transition-transform hover:-translate-y-0.5">

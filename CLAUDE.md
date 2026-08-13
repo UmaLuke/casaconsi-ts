@@ -10,6 +10,7 @@ La documentación completa vive en un vault de Obsidian: **[`docs/vault-casacons
 - **Glosario de negocio:** [`docs/vault-casaconsi/glosario.md`](docs/vault-casaconsi/glosario.md) — Anfitrión/Estudiante, Generación, Match asistido, Perfil verificado, modelo freemium.
 - **Convenciones backend:** [`docs/vault-casaconsi/convenciones/backend.md`](docs/vault-casaconsi/convenciones/backend.md) — stack, arquitectura Controller→Service→Repository, migraciones, secrets, y una sección de gotchas reales (EF Core, `wwwroot`, NuGet) que vale la pena revisar antes de debuggear algo raro.
 - **Convenciones frontend:** [`docs/vault-casaconsi/convenciones/frontend.md`](docs/vault-casaconsi/convenciones/frontend.md) — stack, `VITE_API_URL` centralizado, imports relativos (el alias `@` NO está configurado, ver gotcha), TypeScript estricto (`verbatimModuleSyntax`), estructura de carpetas, trampas de CSS conocidas.
+- **Cliente HTTP / interceptor de 401:** [`docs/vault-casaconsi/convenciones/http-client.md`](docs/vault-casaconsi/convenciones/http-client.md) — cómo funciona `services/httpClient.ts` (`apiFetch`), el evento `casaconsi:unauthorized` y mapa completo de qué componente/página usa cada `service`.
 - **Decisiones de arquitectura (ADRs):** [`docs/vault-casaconsi/decisiones/`](docs/vault-casaconsi/decisiones)
   - [ADR-0001](docs/vault-casaconsi/decisiones/ADR-0001-arquitectura-single-project.md) — backend single-project, no multi-capa.
   - [ADR-0002](docs/vault-casaconsi/decisiones/ADR-0002-persistencia-jwt.md) — persistencia del JWT en frontend.

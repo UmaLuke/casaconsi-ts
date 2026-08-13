@@ -3,8 +3,8 @@
 // request lleva el header Authorization con el JWT. Cubre la CUENTA (nombre,
 // email, password, avatar) — distinto del perfil de match (host/student),
 // que sigue viviendo en questionnaireService.ts.
-import { API_URL } from '../config';
 import type { User } from '../types/auth';
+import { apiFetch } from './httpClient';
 
 export class AccountError extends Error {}
 
@@ -48,14 +48,14 @@ const handleAccountResponse = async (response: Response): Promise<User> => {
 };
 
 export const getMe = async (token: string): Promise<User> => {
-  const response = await fetch(`${API_URL}/api/account/me`, {
+  const response = await apiFetch(`/api/account/me`, {
     headers: authHeaders(token),
   });
   return handleAccountResponse(response);
 };
 
 export const updateName = async (name: string, token: string): Promise<User> => {
-  const response = await fetch(`${API_URL}/api/account/me`, {
+  const response = await apiFetch(`/api/account/me`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
     body: JSON.stringify({ name }),
@@ -67,7 +67,7 @@ export const uploadAvatar = async (avatar: File, token: string): Promise<User> =
   const formData = new FormData();
   formData.append('avatar', avatar);
 
-  const response = await fetch(`${API_URL}/api/account/avatar`, {
+  const response = await apiFetch(`/api/account/avatar`, {
     method: 'POST',
     // Sin 'Content-Type': el browser arma el boundary de multipart solo.
     headers: authHeaders(token),
@@ -81,7 +81,7 @@ export const changePassword = async (
   newPassword: string,
   token: string,
 ): Promise<void> => {
-  const response = await fetch(`${API_URL}/api/account/password`, {
+  const response = await apiFetch(`/api/account/password`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
     body: JSON.stringify({ currentPassword, newPassword }),
@@ -98,7 +98,7 @@ export const changeEmail = async (
   currentPassword: string,
   token: string,
 ): Promise<User> => {
-  const response = await fetch(`${API_URL}/api/account/email`, {
+  const response = await apiFetch(`/api/account/email`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
     body: JSON.stringify({ newEmail, currentPassword }),
@@ -110,7 +110,7 @@ export const uploadGalleryPhoto = async (photo: File, token: string): Promise<Us
   const formData = new FormData();
   formData.append('photo', photo);
 
-  const response = await fetch(`${API_URL}/api/account/gallery`, {
+  const response = await apiFetch(`/api/account/gallery`, {
     method: 'POST',
     headers: authHeaders(token),
     body: formData,
@@ -119,7 +119,7 @@ export const uploadGalleryPhoto = async (photo: File, token: string): Promise<Us
 };
 
 export const removeGalleryPhoto = async (photoUrl: string, token: string): Promise<User> => {
-  const response = await fetch(`${API_URL}/api/account/gallery?photoUrl=${encodeURIComponent(photoUrl)}`, {
+  const response = await apiFetch(`/api/account/gallery?photoUrl=${encodeURIComponent(photoUrl)}`, {
     method: 'DELETE',
     headers: authHeaders(token),
   });

@@ -14,6 +14,7 @@ public record AuthResponseDto
     public string? Profession { get; init; }
     public Generation? Generation { get; init; }
      public required bool IsAdmin { get; init; }
+    public List<string> Gallery { get; init; } = new();
     public required string Token { get; init; }
     public required DateTime ExpiresAt { get; init; }
 }

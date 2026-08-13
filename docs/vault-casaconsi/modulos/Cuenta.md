@@ -33,6 +33,40 @@ Distinto del [[Perfiles|módulo de Perfiles]] (cuestionario host/student para el
   - El wizard (`/cuestionario/*`) no se tocó — sigue siendo el flujo de alta la primera vez, y ahora también sirve de fallback si alguien llega ahí directo.
 - `App.tsx`: ruta `/mi-perfil` agregada, detrás de `ProtectedRoute` (sin `requireAdmin`).
 - `Header.tsx`: dropdown de usuario — link **"Mi perfil"** agregado justo debajo del `menu-title` (nombre + rol) y arriba de "Ir a mi Panel" (admin)/"Cerrar Sesión". Resuelve el pendiente anotado en [[../00-Roadmap|00-Roadmap]] ("agregar botón Mi Perfil — depende de que exista ProfilePage").
+- **(2026-08-10)** `SecurityTab` (contraseña actual, nueva contraseña, contraseña de confirmación para cambiar email) pasó a usar el `PasswordInput` compartido (`components/common/PasswordInput.tsx`, ver [[Auth]]) — botón de ojo para mostrar/ocultar, mismo componente que ahora también usan los forms de login/registro.
+- **(2026-08-10, bug corregido)** La galería de fotos (`PhotoGalleryCard.tsx`, lee `user.gallery`) se veía vacía justo después de un login nuevo (cerrar sesión y volver a entrar, o entrar en otro dispositivo), aunque las fotos siguieran guardadas — porque `/api/auth/login`/`register` no mandaban `Gallery` en la respuesta y `AuthContext.login()` pisa el `user` completo. Se corrigió del lado de Auth, no acá — ver detalle en [[Auth]]. `GET /api/account/me` y las respuestas de `POST`/`DELETE /api/account/gallery` (este módulo) siempre habían devuelto la galería completa y correcta; el bug era exclusivo del flujo de login/registro.
+
+## Interacciones
+
+**Backend:** `AccountController` (`/api/account`, `[Authorize]`) → `AccountService` — **sin Repository** (igual que [[Auth]]: `UserManager<ApplicationUser>` + `IFileStorageService`, sin entidad propia).
+
+| Endpoint | Service / método |
+|---|---|
+| `GET /api/account/me` | `GetMeAsync` |
+| `PUT /api/account/me` | `UpdateNameAsync` |
+| `POST /api/account/avatar` | `UpdateAvatarAsync` (vía `IFileStorageService`, subfolder `avatars/{userId}`) |
+| `PUT /api/account/password` | `ChangePasswordAsync` |
+| `PUT /api/account/email` | `ChangeEmailAsync` |
+| `POST /api/account/gallery` | (galería, ver frontend abajo) |
+| `DELETE /api/account/gallery` | (galería) |
+
+**Frontend:** `services/accountService.ts` (`getMe`, `updateName`, `uploadAvatar`, `changePassword`, `changeEmail`, `uploadGalleryPhoto`, `removeGalleryPhoto`) — vía `apiFetch`, ver [[../convenciones/http-client|convenciones/http-client]].
+
+| Componente | Funciones usadas | Contexto |
+|---|---|---|
+| `pages/ProfilePage.tsx` (`AccountTab`, `SecurityTab`) | `updateName`, `uploadAvatar`, `changePassword`, `changeEmail` | Tabs "Datos de cuenta" y "Seguridad" de `/mi-perfil` |
+| `components/features/profile/PhotoGalleryCard.tsx` | `uploadGalleryPhoto`, `removeGalleryPhoto` | Galería de fotos dentro de `AccountTab` |
+
+Cada función exitosa devuelve el `User` actualizado, que el componente pasa a `AuthContext.updateUser(userData)` (no reprograma el auto-logout, solo refresca `user` en memoria/`localStorage` — así el Header y el resto de la app ven el cambio al instante sin relogin).
+
+```
+AccountTab (ProfilePage.tsx)
+  → updateName(name, token)                    [accountService.ts]
+    → apiFetch('/api/account/me', { method: 'PUT', ... })   [httpClient.ts]
+      → AccountController.UpdateMe → AccountService.UpdateNameAsync → UserManager
+    ← AccountResponseDto
+  → AuthContext.updateUser(user)                [refresca sin relogin]
+```
 
 ## Decisión de diseño
 - Se evaluó extender `ProfileController`/`ProfileService` existentes en vez de crear un módulo nuevo, pero esos ya tienen una responsabilidad clara y acotada (cuestionario de match, con DNI cifrado y lógica de `Generation`) — mezclar ahí datos de cuenta (password, email) habría acoplado dos conceptos distintos bajo el mismo Controller. Se optó por un módulo `Account` separado, replicando el criterio sin-Repository de `AuthService` (ambos operan pura y exclusivamente sobre `ApplicationUser` vía `UserManager`, sin entidades propias que justifiquen una capa de Repository).

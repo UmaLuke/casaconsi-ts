@@ -17,6 +17,24 @@ tags: [convenciones, backend]
 ## Endpoints
 - Todos bajo el prefijo `/api/...` (el frontend los consume vía `VITE_API_URL`).
 
+## Mapa de módulos: Controller → Service → Repository
+
+Quién depende de quién, módulo por módulo (detalle narrativo y tabla de endpoints en cada `modulos/*.md` — esto es solo el mapa de capas para tener la vista completa en un solo lugar).
+
+| Módulo | Controller | Service | Repository | Notas |
+|---|---|---|---|---|
+| [[../modulos/Auth\|Auth]] | `AuthController` | `AuthService` | — (`UserManager<ApplicationUser>`) | + `ITokenService` para el JWT |
+| [[../modulos/Cuenta\|Cuenta]] | `AccountController` | `AccountService` | — (`UserManager<ApplicationUser>`) | + `IFileStorageService` (avatar/galería) |
+| [[../modulos/Perfiles\|Perfiles]] | `ProfileController` | `ProfileService` | `ProfileRepository` | + `IFileStorageService`, `IDataProtector` (DNI). Repository reutilizado como solo-lectura por Match y Space |
+| [[../modulos/Space\|Space]] | `SpaceController` | `SpaceService` | `SpaceRepository` | + `IFileStorageService`, `IProfileRepository` (fallback de fotos, solo lectura) |
+| [[../modulos/Match\|Match]] | `MatchController` | `MatchService` | `MatchRepository` | + `IProfileRepository` (arma DTOs con nombre/foto, solo lectura) |
+| [[../modulos/Confianza\|Confianza]] | `TrustController` | `TrustService` | `TrustRepository` | + `UserManager<ApplicationUser>` (`MembershipTier`) |
+| [[../modulos/Asesorias\|Asesorias]] | — | — | — | Sin capas propias todavía; el alta de cuenta reutiliza `AuthController`/`AuthService` con `UserRole.Advisor` |
+
+Todos los `Controller` (salvo `AuthController`, que es el punto de entrada) llevan `[Authorize]` y operan siempre sobre el usuario del JWT (`Sub`/`NameIdentifier` claim) — ninguno acepta un id de usuario como parámetro para leer/escribir datos de otra persona. `GET /api/space` y `GET /api/space/{id}` son la excepción pública (`[AllowAnonymous]`), porque `/explorar` no requiere login.
+
+Ver [[../convenciones/http-client|convenciones/http-client]] para el lado frontend de este mismo mapa (qué componente llama a qué `service`, y cómo llega cada request a estos endpoints vía `apiFetch`).
+
 ## Migraciones
 - Versionadas y con nombres descriptivos (ej. `AddIdentityColumns`, no `migration1`).
 

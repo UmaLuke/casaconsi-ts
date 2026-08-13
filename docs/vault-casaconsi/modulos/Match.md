@@ -38,6 +38,7 @@ Si alguna de las dos partes todavía no completó el cuestionario (`Generation =
 
 ## Frontend
 - `MessagesPage.tsx`, sección "Match's": conectada a `GET /api/match` (matches confirmados) vía `matchService.ts` — carrusel horizontal con foto/nombre de la contraparte, estados de loading/error/vacío.
+- **(2026-08-13, bug de UI corregido)** La sección "Match's" estaba apilada (título/descripción arriba, cards en fila abajo) — el pedido de QA era reubicar las cards a la derecha del texto, dentro de un recuadro. Layout final: `flex flex-col md:flex-row` con el texto en `md:shrink-0` (ancho natural, sin caja) y el contenido (spinner/error/vacío/cards) en `md:flex-1` con `border border-base-200 rounded-2xl` — el recuadro envuelve **solo** el contenido, no el texto. Una primera versión envolvía todo (texto incluido) en un único `div` con borde — se descartó porque indentaba "Match's" respecto a "Mensajes" (la sección de abajo, sin caja), rompiendo la alineación de los dos títulos al mismo margen izquierdo. En mobile se sigue apilando igual que antes. El match más nuevo aparece primero (más a la izquierda) porque `MatchService.GetMatchesAsync` ya ordena por `CreatedAt` descendente (ver Backend arriba) y `matches.map` renderiza en ese orden — no requirió ningún cambio de backend ni de `matchService.ts`.
 - `matchService.registerLikeDecision(token, targetUserId, liked)`: pega a `POST /api/match/like`, devuelve `LikeResponse` (`isMatch`, `matchId`). Tiene dos consumidores:
   - [[Space]] — `ExploreSpacesPage.tsx` manda `space.hostUserId` como `targetUserId` cuando el estudiante usa los botones ✕/✓ de `MatchDecisionButtons` (en la card o en `SpaceDetailsModal`). Ahí el contexto es "estoy mirando este Space puntual".
   - `DiscoverPage.tsx` (nuevo, ver abajo) — mismo componente `MatchDecisionButtons`, pero sobre `currentItem.userId` del feed. Ahí el contexto es el swipe tipo Tinder clásico.
@@ -46,6 +47,37 @@ Si alguna de las dos partes todavía no completó el cuestionario (`Generation =
 - `DiscoverPage.tsx` (nuevo, ruta `/descubrir`, dentro de `ProtectedRoute` sin `requireAdmin` — redirige a `/` si no hay sesión): pantalla de descubrimiento tipo swipe, un perfil a la vez (`queue[0]`). Al decidir (✕/✓), llama a `registerLikeDecision` y, si la request fue bien, saca el perfil de la cola (`queue.slice(1)`) y pasa al siguiente automáticamente — no hace falta mostrar el estado `liked`/`passed` de `MatchDecisionButtons` porque la card entera desaparece. Si `isMatch` es `true`, muestra un banner "¡Es un match con {nombre}!". `presentationMediaUrl` (video de presentación) todavía no se usa en esta pantalla — pendiente si se agrega.
 - Quién ve la pantalla: el backend resuelve el rol desde el JWT (Student ve Hosts, Host ve Students), el frontend no distingue. Hoy el nav del `Header` solo linkea `/descubrir` para `user.role === 'host'` ("Descubrir Perfiles"), y `LoginModal` redirige ahí después del login si el rol es Host (antes mandaba a todos, estudiantes y anfitriones, a `/explorar` — por eso Rosa Martínez veía la pantalla de Espacios en vez de perfiles de estudiantes). El estudiante en teoría también podría usarla directamente si navega a la ruta, pero su flujo principal sigue siendo `/explorar` (Espacios).
 - `FloatingNav.tsx` (el nav flotante circular a la izquierda): el ítem "Inicio" era un array estático (`NAV_ITEMS`) hardcodeado a `/explorar` para cualquier rol — quedó igual de desactualizado que `LoginModal` y por la misma razón. Ahora `navItems` se arma dentro del componente según `user.role` (`host` → `/descubrir`, si no → `/explorar`).
+
+## Interacciones
+
+**Backend:** `MatchController` (`/api/match`, `[Authorize]`) → `MatchService` → `MatchRepository`. `MatchService` además usa — solo lectura — `IProfileRepository` (para armar los DTOs públicos con nombre/foto, ver [[Perfiles]]).
+
+| Endpoint | Service / método |
+|---|---|
+| `GET /api/match/feed` | `GetFeedAsync` (filtra por generación opuesta) |
+| `POST /api/match/like` | `RegisterDecisionAsync` (crea `Match` si hay like mutuo) |
+| `GET /api/match` | `GetMatchesAsync` |
+
+**Frontend:** `services/matchService.ts` (`getFeed`, `registerLikeDecision`, `getMatches`) — vía `apiFetch`, ver [[../convenciones/http-client|convenciones/http-client]]. Es el service con más consumidores cruzados del frontend:
+
+| Componente/página | Función usada | Contexto |
+|---|---|---|
+| `pages/MessagesPage.tsx` | `getMatches` | Sección "Match's" (matches confirmados) |
+| `pages/DiscoverPage.tsx` | `getFeed`, `registerLikeDecision` | Swipe clásico sobre el feed (`/descubrir`) |
+| `pages/ExploreSpacesPage.tsx` | `registerLikeDecision` | Botones ✕/✓ sobre un `Space`, usa `space.hostUserId` como `targetUserId` — ver [[Space]] |
+| `components/features/landing/ExploreSpaces.tsx` | `registerLikeDecision` | Mismo botón, versión preview de la landing |
+
+Dos flujos distintos llegan al mismo endpoint `POST /api/match/like` con distinto origen del `targetUserId` — uno desde el feed de perfiles (`DiscoverPage`), otro desde un `Space` puntual (`ExploreSpacesPage`/landing). El backend no distingue el origen, solo valida generación opuesta y arma/no arma el `Match`.
+
+```
+DiscoverPage.tsx (swipe ✓ sobre currentItem)
+  → registerLikeDecision(token, currentItem.userId, true)   [matchService.ts]
+    → apiFetch('/api/match/like', { method: 'POST', ... })   [httpClient.ts]
+      → MatchController.Like → MatchService.RegisterDecisionAsync
+          ↳ EnsureOppositeGenerationAsync → MatchRepository (crea ProfileLike, y Match si hay mutuo)
+    ← LikeResponseDto { isMatch, matchId }
+  → si isMatch: banner "¡Es un match!" · siempre: saca el perfil de la cola
+```
 
 ## ⚠️ Inconsistencia a revisar con el frontend
 La Fase 2 del Roadmap (frontend) describe `ApplicationsList.jsx` / `IncomingRequests.jsx` con estados "Pendiente / En Entrevista / Aceptada" — eso corresponde a un modelo de **solicitud/aplicación a un Space puntual**, no al like mutuo recién decidido. Falta confirmar si:

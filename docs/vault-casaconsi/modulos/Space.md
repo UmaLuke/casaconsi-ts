@@ -47,6 +47,37 @@ Mismo patrón que `HostProfile.HomePhotoPaths`: `PhotoPaths` (lista, subida real
 - `MatchDecisionButtons.tsx` (nuevo, `components/features/spaces/`): par de botones (✕ rechazar / ✓ verde marcar match), compartido entre la card de la grilla (debajo de "Ver detalles") y el footer de `SpaceDetailsModal` (reemplazó al botón "Cerrar" de ahí). Estado `idle | loading | liked | passed` por `Space.id`, manejado en `ExploreSpacesPage` para que card y modal queden sincronizados.
 - Al presionar cualquiera de los dos botones, `ExploreSpacesPage.handleDecide` llama a `matchService.registerLikeDecision(token, space.hostUserId, liked)` (ver [[Match]]) — cierra el modal si estaba abierto y muestra un toast de error si falla (sin sesión, generación igual, etc.).
 
+## Interacciones
+
+**Backend:** `SpaceController` (`/api/space`) → `SpaceService` → `SpaceRepository`. `SpaceService` además depende de `IFileStorageService` (fotos) y — solo lectura — de `IProfileRepository` (fallback de fotos a `HostProfile.HomePhotoPaths`, ver [[Perfiles]]).
+
+| Endpoint | Auth | Service / método |
+|---|---|---|
+| `GET /api/space` | público | `GetActiveSpacesAsync` |
+| `GET /api/space/{id}` | público | `GetByIdAsync` |
+| `GET /api/space/mine` | `Host` | `GetMineAsync` |
+| `POST /api/space` | `Host` | `CreateAsync` |
+| `POST /api/space/{id}/photos` | `Host`, dueño del Space | `UploadPhotosAsync` |
+
+**Frontend:** `services/spaceService.ts` (`getSpaces`) — vía `apiFetch`, ver [[../convenciones/http-client|convenciones/http-client]]. Solo `GetActiveSpacesAsync` está conectado hoy; `GET /{id}`, `GET /mine`, `POST`, `POST /{id}/photos` ya existen en el backend pero no tienen pantalla (ver Pendiente).
+
+| Componente/página | Función usada | Contexto |
+|---|---|---|
+| `pages/ExploreSpacesPage.tsx` | `getSpaces` | Grilla/perfil de espacios (`/explorar`) |
+| `components/features/landing/ExploreSpaces.tsx` | `getSpaces` | Preview de 3 espacios en la landing |
+
+El botón ✕/✓ (`MatchDecisionButtons`) sobre un `Space` **no** llama a `spaceService` — llama a `matchService.registerLikeDecision(token, space.hostUserId, liked)`, ver [[Match]].
+
+```
+ExploreSpacesPage.tsx (useEffect al montar)
+  → getSpaces()                                  [spaceService.ts, sin token]
+    → apiFetch('/api/space')                      [httpClient.ts]
+      → SpaceController.GetAll → SpaceService.GetActiveSpacesAsync → SpaceRepository
+                                                     ↳ ToPhotoUrlsAsync usa ProfileRepository como fallback
+    ← SpaceResponseDto[]
+  → toSpace(dto) por cada uno                      [placeholder de imagen si no hay fotos]
+```
+
 ## Pendiente
 - `SpaceDetailPage.tsx`, `MySpacesList.tsx`, `NewSpaceForm.tsx` — el backend ya tiene los endpoints (`GET /{id}`, `GET /mine`, `POST`, `POST /{id}/photos`), falta la UI. Sin `NewSpaceForm`, hoy no hay forma de probar `POST /{id}/photos` con fotos propias de un `Space` real — el fallback a `HostProfile.HomePhotoPaths` es lo único que se ve en la práctica hasta que exista esa pantalla.
 - Reemplazar `ExternalImageUrl` por fotos reales subidas cuando exista `NewSpaceForm`.

@@ -2,6 +2,7 @@
 import { API_URL } from '../config';
 import type { Space } from '../types/space';
 import type { Generation, Purpose, Duration } from '../types/filters';
+import { apiFetch } from './httpClient';
 
 export class SpaceError extends Error {}
 
@@ -64,7 +65,7 @@ const toSpace = (dto: SpaceResponseDto): Space => ({
 });
 
 export const getSpaces = async (): Promise<Space[]> => {
-  const response = await fetch(`${API_URL}/api/space`);
+  const response = await apiFetch(`/api/space`);
   if (!response.ok) {
     throw new SpaceError('No se pudieron cargar los espacios. Probá de nuevo.');
   }

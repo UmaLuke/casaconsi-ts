@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import { Mail, Lock, Loader2 } from 'lucide-react';
+import { Mail, Loader2 } from 'lucide-react';
+import { PasswordInput } from '../../common/PasswordInput';
 
 export interface LoginFormData {
   email: string;
@@ -54,19 +55,14 @@ export const LoginForm = ({ onSubmit, isLoading = false }: LoginFormProps) => {
               ¿Olvidaste tu contraseña?
             </a>
           </label>
-          {/* Solución: Se agregó w-full aquí */}
-          <label className="input input-bordered flex items-center gap-3 w-full focus-within:outline-brand-teal focus-within:outline-2 transition-all bg-base-100">
-            <Lock className="h-5 w-5 text-base-content/40" />
-            <input 
-              type="password" 
-              className="grow text-base-content" 
-              placeholder="••••••••" 
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              required
-              disabled={isLoading}
-            />
-          </label>
+          <PasswordInput
+            className="grow text-base-content"
+            placeholder="••••••••"
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            required
+            disabled={isLoading}
+          />
         </div>
       </div>
 

@@ -18,6 +18,24 @@ tags: [modulo, backend, pendiente]
 - Alcance del MVP: ¿agenda/reserva de sesión, pago asociado, listado de asesores conectado a datos reales (reemplazar el `mockAdvisors` de `Advisors.tsx` y el placeholder de `AdvisoryPage.tsx`), vista de gestión del lado del asesor — todo junto o por etapas?
 - ¿El campo `Profession` debería eventualmente ser una lista cerrada (enum/tabla) en vez de texto libre, si se suman más profesiones además de Trabajo Social?
 
+## Interacciones (lo que existe hoy)
+
+No hay `AdvisoryController`/`AdvisoryService` propios todavía — lo único real es el alta de cuenta, que reutiliza el módulo Auth:
+
+```
+RegisterAdvisorForm.tsx (RegisterAdvisorPage.tsx, /register/asesor)
+  → registerRequest(data)                        [authService.ts, ver [[Auth]]]
+    → apiFetch('/api/auth/register', ...)          [httpClient.ts]
+      → AuthController.Register → AuthService.RegisterAsync (UserRole.Advisor, Profession persistido)
+    ← AuthResponseDto
+```
+
+El resto del frontend relacionado con asesorías **no llama a ningún service todavía**:
+- `components/features/landing/Advisors.tsx` renderiza un array `mockAdvisors` hardcodeado — no hay `advisoryService.ts` ni endpoint que lo alimente.
+- `pages/AdvisoryPage.tsx` es un placeholder estático.
+
+Cuando exista el backend real (agenda/pago/listado), este módulo va a necesitar su propio `AdvisoryController → AdvisoryService → AdvisoryRepository` (siguiendo el mismo patrón que [[Match]]/[[Space]]/[[Perfiles]]) y un `services/advisoryService.ts` en el frontend — documentar acá cuando se arme, siguiendo el formato de interacciones de los demás módulos (ver [[../convenciones/http-client|convenciones/http-client]]).
+
 ## Pendiente de ajustar
 - `LoginModal.tsx` línea 26: redirect post-login binario (`host` → `/descubrir`, cualquier otro rol → `/explorar`) no contempla `advisor` todavía — y ahora que pueden existir cuentas reales, es un bug latente, no solo teórico.
 
