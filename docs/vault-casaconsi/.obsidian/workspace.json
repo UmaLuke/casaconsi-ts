@@ -25,10 +25,14 @@
             "id": "b748ad3009e0439d",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Vista gráfica"
+              "type": "markdown",
+              "state": {
+                "file": "datos-demo.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "datos-demo"
             }
           }
         ],
@@ -184,6 +188,10 @@
   },
   "active": "b748ad3009e0439d",
   "lastOpenFiles": [
+    "convenciones/http-client.md.tmp.16960.dc05b80ae053",
+    "modulos/Chat.md",
+    "00-Roadmap.md.tmp.16960.adfd75a3e8f0",
+    "00-Roadmap.md.tmp.16960.127d71c0d405",
     "modulos/Confianza.md",
     "datos-demo.md",
     "Cuenta creada.md",
@@ -198,8 +206,6 @@
     "convenciones/frontend.md",
     "00-Roadmap.md.tmp.15032.887cdb40636f",
     "Sin título.base",
-    "00-Roadmap.md.tmp.18108.4b4595bf28ba",
-    "modulos/Space.md.tmp.18108.996f43861daa",
     "modulos/Perfiles.md",
     "modulos/Auth.md",
     "00-Roadmap.md",

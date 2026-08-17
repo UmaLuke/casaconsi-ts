@@ -28,6 +28,7 @@ Quién depende de quién, módulo por módulo (detalle narrativo y tabla de endp
 | [[../modulos/Perfiles\|Perfiles]] | `ProfileController` | `ProfileService` | `ProfileRepository` | + `IFileStorageService`, `IDataProtector` (DNI). Repository reutilizado como solo-lectura por Match y Space |
 | [[../modulos/Space\|Space]] | `SpaceController` | `SpaceService` | `SpaceRepository` | + `IFileStorageService`, `IProfileRepository` (fallback de fotos, solo lectura) |
 | [[../modulos/Match\|Match]] | `MatchController` | `MatchService` | `MatchRepository` | + `IProfileRepository` (arma DTOs con nombre/foto, solo lectura) |
+| [[../modulos/Chat\|Chat]] | `ChatController` + `Hubs/ChatHub` (SignalR, `/hubs/chat`) | `ChatService` | `ChatRepository` | + `IMatchRepository`, `IProfileRepository` (solo lectura). `Message` cuelga directo de `Match`, sin entidad `Conversation` propia |
 | [[../modulos/Confianza\|Confianza]] | `TrustController` | `TrustService` | `TrustRepository` | + `UserManager<ApplicationUser>` (`MembershipTier`) |
 | [[../modulos/Asesorias\|Asesorias]] | — | — | — | Sin capas propias todavía; el alta de cuenta reutiliza `AuthController`/`AuthService` con `UserRole.Advisor` |
 

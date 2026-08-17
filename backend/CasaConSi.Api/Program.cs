@@ -14,6 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddSignalR();
 
 // DbContext con PostgreSQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -63,6 +64,23 @@ builder.Services
             ValidAudience = builder.Configuration["Jwt:Audience"] ?? "CasaConSi.Client",
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
         };
+
+        // El cliente SignalR no manda el header Authorization en la conexión
+        // WebSocket — manda el JWT por query string. Sin esto, ChatHub
+        // rechaza todas las conexiones con 401 aunque el token sea válido.
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/chat"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 
 // Servicios propios del módulo de Auth
@@ -83,6 +101,9 @@ builder.Services.AddScoped<CasaConSi.Api.Services.Interfaces.IMatchService, Casa
 // Servicios propios del módulo Space
 builder.Services.AddScoped<CasaConSi.Api.Repositories.Interfaces.ISpaceRepository, CasaConSi.Api.Repositories.SpaceRepository>();
 builder.Services.AddScoped<CasaConSi.Api.Services.Interfaces.ISpaceService, CasaConSi.Api.Services.SpaceService>();
+// Servicios propios del módulo de Chat (SignalR), habilitado por Match
+builder.Services.AddScoped<CasaConSi.Api.Repositories.Interfaces.IChatRepository, CasaConSi.Api.Repositories.ChatRepository>();
+builder.Services.AddScoped<CasaConSi.Api.Services.Interfaces.IChatService, CasaConSi.Api.Services.ChatService>();
 // Data Protection: cifra el DNI antes de guardarlo (ver ProfileService). Las
 // claves se persisten en disco para que sobrevivan a un reinicio del proceso
 // en desarrollo — en Azure, esto debería apuntar a Azure Key Vault / Blob
@@ -156,6 +177,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<CasaConSi.Api.Hubs.ChatHub>("/hubs/chat");
 
 var summaries = new[]
 {

@@ -17,6 +17,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Match> Matches => Set<Match>();
     public DbSet<Space> Spaces => Set<Space>();
     public DbSet<ProfileVerification> ProfileVerifications => Set<ProfileVerification>();
+    public DbSet<Message> Messages => Set<Message>();
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -85,6 +86,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.HasOne<ApplicationUser>().WithMany().HasForeignKey(m => m.StudentUserId).OnDelete(DeleteBehavior.Cascade);
             entity.HasOne<ApplicationUser>().WithMany().HasForeignKey(m => m.HostUserId).OnDelete(DeleteBehavior.Restrict);
         });
+
+        builder.Entity<Message>(entity =>
+        {
+            entity.HasIndex(m => m.MatchId);
+            entity.HasOne<Match>().WithMany().HasForeignKey(m => m.MatchId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<ApplicationUser>().WithMany().HasForeignKey(m => m.SenderUserId).OnDelete(DeleteBehavior.Restrict);
+            entity.Property(m => m.Content).HasMaxLength(4000);
+            entity.HasIndex(m => m.CreatedAt);
+        }); 
 
         // Default en Postgres (array vacío) para que ALTER TABLE no falle con
         // usuarios ya existentes al agregar la columna (ver migración

@@ -2,7 +2,7 @@ tags: [roadmap, casaconsi]
 
 # 🗺️ Roadmap — CASA con SI
 
-Estado general del proyecto. Última actualización: 2026-08-13 (batería de bugs de UI en mobile: botón "Iniciar Sesión" invisible en el header, scroll roto en el modal de login, reposición de la sección "Match's" en `MessagesPage.tsx` — ver [[modulos/Auth]] y [[modulos/Match]]).
+Estado general del proyecto. Última actualización: 2026-08-17 (backend + frontend del chat en tiempo real vía SignalR, habilitado por `Match` — ver [[modulos/Chat]]).
 
 Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/frontend]]
 
@@ -128,7 +128,7 @@ Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/fronten
 ## 🧱 Backend — módulos pendientes
 
 - [ ] [[modulos/Asesorias]] — en curso. ✅ Rol de asesor (`UserRole.Advisor`) y ✅ alta de cuenta (`RegisterAdvisorPage` en `/register/asesor`, campo `Profession` persistido vía migración `AddProfessionToApplicationUser`) — ver [[decisiones/ADR-0003-rol-asesor]]. Falta: agenda/reserva de sesión, pago asociado, conectar el listado de asesores de la landing (`Advisors.tsx`) a datos reales en vez de `mockAdvisors`, y vista de gestión del lado del asesor. Sigue pendiente el ajuste de `LoginModal.tsx` para el redirect post-login de `advisor`.
-- [ ] Chat en tiempo real (SignalR): `Conversation`/`Message`, habilitado por `Match` (ver [[modulos/Match]]). Incluye: crear el chat 1:1 en sí (mensajería) y la vista de lista de conversaciones múltiples en pantalla.
+- [x] **(2026-08-17)** Chat en tiempo real (SignalR) — ver [[modulos/Chat]] para el detalle completo. `Message` cuelga directo de `Match` (sin entidad `Conversation` separada), `ChatHub` (`/hubs/chat`) + `ChatController` (`/api/chat`) → `ChatService` → `ChatRepository`, migración `AddChat` aplicada a `db_ccs`. Frontend: `MessagesPage.tsx` reemplaza el placeholder de "Mensajes" por lista de conversaciones + panel de chat conectado en tiempo real (`chatService.ts` + `@microsoft/signalr`). **Backend cerrado; frontend queda abierto para mejoras** (ver sección "Mejoras pendientes" en [[modulos/Chat]] — layout del panel, estados de conexión/reconexión visibles al usuario, paginación de historial, indicador de mensaje enviado/leído, etc.).
 - [x] Pantalla de descubrimiento/swipe para `GET /api/match/feed` + `POST /api/match/like` → `DiscoverPage.tsx` (`/descubrir`), ver [[modulos/Match]].
 - [x] **(2026-08-06)** Backend del módulo Confianza/Verificación de perfiles — sistema de puntaje 0-10 (10 ítems del docx del cliente, gateados por `MembershipTier` Freemium/Premium), `TrustController` (`/api/trust/status`, `/api/trust/items`) → `TrustService` → `TrustRepository`, migración `AddTrustVerification`. Frontend: insignia `TrustBadge.tsx` conectada en `ProfilePage.tsx`. Ver [[modulos/Confianza]] — falta UI para autodeclarar los ítems, insignia pública en Discover/Explorar, y definir el flujo de revisión de staff (depende del Módulo Admin, todavía no iniciado).
 

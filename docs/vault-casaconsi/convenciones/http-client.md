@@ -84,11 +84,14 @@ El componente que originó el request **no** necesita saber nada de esto: su `tr
 | `accountService.ts` | `GET/PUT /api/account/me`, `POST /api/account/avatar`, `PUT /api/account/password`, `PUT /api/account/email`, `POST/DELETE /api/account/gallery` | `pages/ProfilePage.tsx` (nombre, avatar, password, email), `components/features/profile/PhotoGalleryCard.tsx` (galería) |
 | `questionnaireService.ts` | `GET /api/profile/status`, `GET/PUT /api/profile/student`, `GET/PUT /api/profile/host`, `POST /api/profile/{student,host}/photos` | `pages/questionnaire/StudentQuestionnairePage.tsx`, `pages/questionnaire/HostQuestionnairePage.tsx`, `pages/ProfilePage.tsx` (tab "Mi perfil de match", ver [[../modulos/Cuenta|Cuenta]]) |
 | `matchService.ts` | `GET /api/match`, `GET /api/match/feed`, `POST /api/match/like` | `pages/MessagesPage.tsx` (`getMatches`), `pages/DiscoverPage.tsx` (`getFeed` + `registerLikeDecision`), `pages/ExploreSpacesPage.tsx` y `components/features/landing/ExploreSpaces.tsx` (`registerLikeDecision`, botones ✕/✓ sobre un `Space`) |
+| `chatService.ts` | `GET /api/chat`, `GET /api/chat/{matchId}/messages` (REST, vía `apiFetch`) + `/hubs/chat` (SignalR, conexión aparte — ver [[../modulos/Chat\|Chat]]) | `pages/MessagesPage.tsx` (sección "Mensajes": `getConversations`, `getMessages`, `createChatConnection`) |
 | `spaceService.ts` | `GET /api/space` | `pages/ExploreSpacesPage.tsx`, `components/features/landing/ExploreSpaces.tsx` (preview del landing) |
 | `trustService.ts` | `GET /api/trust/status` | `pages/ProfilePage.tsx` (`TrustBadge`, ver [[../modulos/Confianza|Confianza]]) |
 | `exchangeService.ts` | *(externo, `dolarapi.com`)* | `hooks/useExchangeRate.ts` — **no pasa por `apiFetch`**, no es la API propia |
 
 Todos menos `exchangeService.ts` están migrados a `apiFetch`. El `service` que agregues de acá en adelante debería nacer usando `apiFetch` directo, no `fetch` a mano.
+
+`chatService.ts` es un caso mixto: sus dos funciones REST (`getConversations`, `getMessages`) sí pasan por `apiFetch` como cualquier otro service, pero `createChatConnection` arma una conexión SignalR aparte (`HubConnection`, no un `fetch`) — no dispara el interceptor de 401 de `apiFetch` ni el evento `casaconsi:unauthorized`. Si el token vence mientras hay una conexión de chat abierta, el `Hub` la va a rechazar en la próxima operación, pero eso no pasa por este mecanismo — queda como caso aparte, no cubierto todavía.
 
 ## 6. Qué NO cambia
 
