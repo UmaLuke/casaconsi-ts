@@ -1,9 +1,9 @@
 // src/pages/ExploreSpacesPage.tsx
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { MapPin, User, CheckCircle2, SlidersHorizontal, X, LayoutGrid, UserRound } from 'lucide-react';
 import { Header } from '../components/layout/Header';
 import { Footer } from '../components/layout/Footer';
-import { SpaceDetailsModal } from '../components/features/spaces/SpaceDetailsModal';
+import { useNavigate } from 'react-router-dom';
 import { MatchDecisionButtons, type DecisionStatus } from '../components/features/spaces/MatchDecisionButtons';
 import { useSpaceFilters } from '../hooks/useSpaceFilters';
 import { useExchangeRate } from '../hooks/useExchangeRate';
@@ -16,6 +16,7 @@ import { GENERATION_LABELS, PURPOSE_LABELS, DURATION_LABELS, type Generation, ty
 export const ExploreSpacesPage = () => {
   const { filters, updateFilter, clearFilters, activeFilterCount } = useSpaceFilters();
   const { token } = useAuth();
+  const navigate = useNavigate();
 
   const { rate, isLoading } = useExchangeRate();
   const [preferredCurrency, setPreferredCurrency] = useState<'ARS' | 'USD'>('ARS');
@@ -31,25 +32,14 @@ export const ExploreSpacesPage = () => {
   const [spacesLoading, setSpacesLoading] = useState(true);
   const [spacesError, setSpacesError] = useState<string | null>(null);
 
-  const [selectedSpace, setSelectedSpace] = useState<Space | null>(null);
-  const detailsModalRef = useRef<HTMLDialogElement>(null);
-
+  
   // Estado de la decisión (like/pass) por Space.id, compartido entre la
   // card de la grilla y el modal de detalles para que queden sincronizados.
   const [decisions, setDecisions] = useState<Record<string, DecisionStatus>>({});
   const [decisionError, setDecisionError] = useState<string | null>(null);
 
-  // Ver el detalle de un espacio (foto grande, comodidades, like/pass) pide
-  // sesión — sin token abrimos el login (mismo <dialog id="login_modal">
-  // que monta el Header) en vez del modal de detalles.
   const handleOpenDetails = (space: Space) => {
-    if (!token) {
-      const modal = document.getElementById('login_modal') as HTMLDialogElement | null;
-      modal?.showModal();
-      return;
-    }
-    setSelectedSpace(space);
-    detailsModalRef.current?.showModal();
+    navigate(`/espacios/${space.id}`);
   };
 
   const handleDecide = async (space: Space, liked: boolean) => {
@@ -68,7 +58,7 @@ export const ExploreSpacesPage = () => {
       // ocupe el lugar automáticamente (no afecta a la grilla, que sigue
       // mostrando todos los espacios con su badge de decisión).
       setSwipedIds((prev) => new Set(prev).add(space.id));
-      detailsModalRef.current?.close();
+      
     } catch (err) {
       setDecisions((prev) => ({ ...prev, [space.id]: 'idle' }));
       setDecisionError(err instanceof MatchError ? err.message : 'No se pudo registrar tu decisión. Probá de nuevo.');
@@ -455,14 +445,6 @@ export const ExploreSpacesPage = () => {
         </div>
       </main>
 
-      <SpaceDetailsModal
-        ref={detailsModalRef}
-        space={selectedSpace}
-        formatPrice={formatPrice}
-        decisionStatus={selectedSpace ? decisions[selectedSpace.id] ?? 'idle' : 'idle'}
-        onReject={(space) => handleDecide(space, false)}
-        onLike={(space) => handleDecide(space, true)}
-      />
 
       {decisionError && (
         <div className="toast toast-top toast-center z-50">

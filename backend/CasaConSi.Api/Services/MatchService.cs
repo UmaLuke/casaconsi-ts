@@ -1,36 +1,29 @@
 using CasaConSi.Api.DTOs.Match;
 using CasaConSi.Api.Models;
 using CasaConSi.Api.Models.Enums;
+using CasaConSi.Api.Models.Profiles;
 using CasaConSi.Api.Repositories.Interfaces;
 using CasaConSi.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
 namespace CasaConSi.Api.Services;
 
-// Lógica de negocio del match básico (like mutuo). El Controller nunca toca
-// ProfileLike/Match ni el DbContext directamente — todo pasa por acá y por
-// IMatchRepository. Reutiliza IProfileRepository (solo lectura) para validar
-// existencia de perfiles y armar los DTOs públicos.
-//
-// Regla de negocio (ver frontend/src/types/filters.ts, canMatch): el match
-// SOLO es posible entre generaciones distintas (Joven Adulto <-> Adulto
-// Mayor) — es el corazón del modelo de Solidaridad Intergeneracional. Se
-// aplica acá en dos puntos: al armar el feed (GetFeedAsync) y de nuevo al
-// registrar un like (RegisterDecisionAsync), para no depender únicamente de
-// que el frontend respete el feed filtrado.
 public class MatchService : IMatchService
 {
     private readonly IMatchRepository _matchRepository;
     private readonly IProfileRepository _profileRepository;
+    private readonly ITrustService _trustService;
     private readonly UserManager<ApplicationUser> _userManager;
 
     public MatchService(
         IMatchRepository matchRepository,
         IProfileRepository profileRepository,
+        ITrustService trustService,
         UserManager<ApplicationUser> userManager)
     {
         _matchRepository = matchRepository;
         _profileRepository = profileRepository;
+        _trustService = trustService;
         _userManager = userManager;
     }
 
@@ -130,6 +123,71 @@ public class MatchService : IMatchService
 
         return result.OrderByDescending(m => m.CreatedAt).ToList();
     }
+
+    // "Interesados en tu publicación": estudiantes que ya te dieron like y
+    // vos todavía no decidiste — distinto de GetFeedAsync (candidatos nuevos
+    // sin decidir de ninguna de las dos partes). Acá el filtro es al revés,
+    // solo entran los que YA mostraron interés.
+    public async Task<List<InterestedStudentDto>> GetInterestedStudentsAsync(string hostUserId)
+    {
+        var students = await _matchRepository.GetInterestedStudentProfilesAsync(hostUserId);
+
+        var result = new List<InterestedStudentDto>();
+        foreach (var student in students)
+        {
+            var trustStatus = await _trustService.GetStatusAsync(student.UserId);
+            result.Add(new InterestedStudentDto
+            {
+                UserId = student.UserId,
+                FullName = student.PersonalData.FullName,
+                ProfilePhotoUrl = ToUrl(student.ProfilePhotoPath),
+                StudyOrWorkSummary = BuildStudyOrWorkSummary(student.TravelReason),
+                TrustScore = trustStatus.Score,
+                TrustLevel = trustStatus.Level,
+            });
+        }
+
+        return result;
+    }
+
+    public async Task<StudentDetailDto> GetInterestedStudentDetailAsync(string hostUserId, string studentUserId)
+    {
+        var liked = await _matchRepository.GetDecisionAsync(studentUserId, hostUserId, UserRole.Student);
+        if (liked != true)
+        {
+            throw new UnauthorizedAccessException("Este perfil todavía no mostró interés en tu publicación.");
+        }
+
+        var student = await _profileRepository.GetStudentProfileByUserIdAsync(studentUserId)
+            ?? throw new InvalidOperationException("El perfil indicado no existe.");
+        var user = await _userManager.FindByIdAsync(studentUserId)
+            ?? throw new InvalidOperationException("El perfil indicado no existe.");
+        var trustStatus = await _trustService.GetStatusAsync(studentUserId);
+
+        return new StudentDetailDto
+        {
+            UserId = student.UserId,
+            FullName = student.PersonalData.FullName,
+            PhotoUrls = user.GalleryPhotoPaths.Select(p => $"/uploads/{p}").ToList(),
+            AboutMe = student.PersonalPresentation.AboutMe,
+            Motivation = student.PersonalPresentation.Motivation,
+            PreferredNeighborhoods = student.PreferredNeighborhoods,
+            StudyOrWorkSummary = BuildStudyOrWorkSummary(student.TravelReason),
+            StayDuration = student.StayDuration,
+            Generation = user.Generation
+                ?? throw new InvalidOperationException("Este perfil todavía no completó su cuestionario."),
+            TrustScore = trustStatus.Score,
+            TrustLevel = trustStatus.Level,
+        };
+    }
+
+    private static string BuildStudyOrWorkSummary(StudentTravelReason reason) => reason.Reason switch
+    {
+        "estudios" => string.IsNullOrWhiteSpace(reason.StudyDetails) ? "Estudia" : $"Estudia {reason.StudyDetails}",
+        "trabajo" => string.IsNullOrWhiteSpace(reason.WorkDetails) ? "Trabaja" : $"Trabaja en {reason.WorkDetails}",
+        "proyecto-personal" => "Proyecto personal",
+        _ => string.IsNullOrWhiteSpace(reason.ReasonOther) ? "Motivo no especificado" : reason.ReasonOther,
+    };
 
     private static MatchFeedItemDto ToFeedItem(HostProfile host) => new()
     {

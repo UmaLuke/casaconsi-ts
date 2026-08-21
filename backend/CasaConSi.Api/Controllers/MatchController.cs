@@ -72,4 +72,30 @@ public class MatchController : ControllerBase
         var matches = await _matchService.GetMatchesAsync(CurrentUserId, CurrentUserRole);
         return Ok(matches);
     }
+    // "Interesados en tu publicación" — solo Host.
+    [HttpGet("interested")]
+    [Authorize(Roles = "Host")]
+    public async Task<ActionResult<List<InterestedStudentDto>>> GetInterestedStudents()
+    {
+        return Ok(await _matchService.GetInterestedStudentsAsync(CurrentUserId));
+    }
+
+    [HttpGet("interested/{studentUserId}")]
+    [Authorize(Roles = "Host")]
+    public async Task<ActionResult<StudentDetailDto>> GetInterestedStudentDetail(string studentUserId)
+    {
+        try
+        {
+            var detail = await _matchService.GetInterestedStudentDetailAsync(CurrentUserId, studentUserId);
+            return Ok(detail);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }

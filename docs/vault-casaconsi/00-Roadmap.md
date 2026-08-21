@@ -2,9 +2,32 @@ tags: [roadmap, casaconsi]
 
 # 🗺️ Roadmap — CASA con SI
 
-Estado general del proyecto. Última actualización: 2026-08-17 (backend + frontend del chat en tiempo real vía SignalR, habilitado por `Match` — ver [[modulos/Chat]]).
+Estado general del proyecto. Última actualización: 2026-08-21 ("Interesados en tu publicación" — host ve estudiantes interesados, construida y pendiente de validar con la clienta, ver [[modulos/Match]]).
 
 Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/frontend]]
+
+---
+
+## 📌 Nuevos pendientes (reportados por la clienta, 2026-08-18)
+
+Todavía sin desarrollar — quedan anotados acá para no perderlos, con las preguntas abiertas que hay que resolver antes de tocar código en cada uno.
+
+- [ ] **Bug — `ExploreSpacesPage.tsx` sigue mostrando `Space`s ya decididos.** Un estudiante que ya le dio ✕/✓ a un `Space` (o ya hizo match con su anfitrión) lo sigue viendo en la grilla/perfil de `/explorar`. Comparar con `DiscoverPage.tsx`: ahí el feed (`GET /api/match/feed`) ya excluye perfiles decididos vía `MatchRepository.GetHostProfilesForFeedAsync`/`GetStudentProfilesForFeedAsync` (ver [[modulos/Match]]), pero `GET /api/space` (el que usa `ExploreSpacesPage`) es un listado público (`[AllowAnonymous]`, lo consume también el preview del landing sin sesión) sin ese filtro — ahí está la causa. A definir: ¿el filtro va en el backend (requiere diferenciar el caso autenticado del anónimo en `SpaceService`) o alcanza con filtrar client-side contra los matches/decisiones ya cargadas? Ver [[modulos/Space]] y [[modulos/Match]].
+- [ ] **Feature — 3 matches semanales gratis, el resto pago.** Redefine el "Modelo freemium" tal como está descripto hoy en [[glosario]] (ahí dice que el match básico es gratis *sin límite*; esto lo cambia, hay que actualizar el glosario una vez que se cierre el diseño). Encaja naturalmente con `MembershipTier.Freemium`/`Premium` que ya existe en `ApplicationUser` para [[modulos/Confianza]], pero hace falta definir antes de implementar: ¿el límite cuenta *likes* dados o *matches* confirmados (mutuos)? ¿reset por semana calendario o ventana móvil de 7 días? ¿qué pasa con un like ya pendiente cuando se llega al límite, se bloquea o se permite terminar de confirmar? ¿cómo se paga el excedente — upgrade a Premium completo, o un cobro puntual por match extra? Esto último probablemente dependa de tener algún medio de pago integrado, que hoy el proyecto no tiene (ver Asesorías más abajo, que también necesita cobro y tampoco lo tiene resuelto).
+
+  **Referencia de precios recibida de la clienta (2026-08-21, hipótesis inicial, no definitiva):**
+
+  | Pack | Matches | Precio | Precio por match |
+  |---|---|---|---|
+  | 🟢 Gratis | 3 / mes | — | — |
+  | 🟡 Pack Inicial | 5 | $5.500 | $1.100 |
+  | 🔵 Pack Exploración ⭐ (sugerido por la clienta como el destacado) | 10 | $10.000 | $1.000 |
+  | 🟣 Pack Búsqueda | 20 | $18.000 | $900 |
+  | 💎 Pack Intensivo | 30 | $25.000 | $833 |
+
+  Nota: la clienta habló de "3 Match / mes" gratis acá, no "3 semanales" como se había anotado antes en este mismo ítem — confirmar cuál es la cadencia real (mensual vs. semanal) antes de implementar el reset. Son packs de compra (no suscripción recurrente), a diferencia de `MembershipTier.Freemium`/`Premium` que hoy es un flag binario — falta definir si esto conviene modelarlo como un contador de créditos consumibles en vez de (o además de) el `MembershipTier` existente.
+- [ ] **Bug — fotos de los anuncios de host.** Reportado sin detalle todavía; falta que la clienta precise el síntoma exacto (¿no se suben desde `NewSpaceForm`/edición? ¿no se ven en la grilla de `/explorar`? ¿en el detalle del anuncio?) antes de diagnosticar. Candidatos ya conocidos en el código que podrían estar relacionados: el gotcha de `wwwroot`/`UseStaticFiles()` en [[../convenciones/backend|convenciones/backend]] (fotos que dan 404 aunque el archivo exista en disco), y el fallback de `PhotoUrls` a `HostProfile.HomePhotoPaths` cuando el anuncio no tiene fotos propias, documentado en [[modulos/Space]] (2026-08-05) — puede ser que ese fallback esté mostrando la foto equivocada en algún caso. Confirmar reproducción antes de tocar nada.
+- [ ] **Módulo Admin — priorizado por la clienta.** Ya estaba listado como "no iniciado" (ver sección [[#🔐 Módulo Admin (pendiente, no iniciado)]] más abajo); pasa a ser prioridad. Sigue sin alcance definido — antes de arrancar hay que decidir qué incluye (gestión de usuarios, moderación de `Space`s, aprobación/revisión de verificación de perfiles — ver [[modulos/Confianza]] pendiente de "flujo de revisión de staff" —, y probablemente gestión de membresías/pagos si sale el punto anterior).
 
 ---
 
@@ -110,7 +133,7 @@ Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/fronten
 ## 📋 Fase 2 — Vistas específicas por rol (frontend, pendiente)
 
 ### Módulo común
-- [ ] `RegisterPage.jsx` / `RegisterModal.jsx` — diseño final del flujo de creación de cuenta.
+- [x] **(aprobado, verificado 2026-08-18)** `RegisterPage.tsx` / `RegisterForm.tsx` — diseño final del flujo de creación de cuenta, ya construido y aprobado por la clienta. Pantalla partida: panel izquierdo con imagen de fondo + degradé navy y texto de marca ("Comienza tu historia de convivencia", acento naranja), panel derecho con el formulario (selector de rol Ofrecer casa/Buscar casa, nombre, email, contraseña con visibilidad toggle, botón naranja de submit). En mobile el panel izquierdo se oculta y queda el logo + formulario centrado. La nota "verificado 2026-07-27: RegisterPage no existe todavía" (más abajo, sección de próximos pasos) quedó desactualizada — la pantalla se construyó después de esa verificación.
 - [x] **(2026-08-04)** `ProfilePage.tsx` — gestión de datos de cuenta (nombre, foto/avatar) y seguridad (contraseña, email). Las "preferencias de convivencia" quedaron afuera a propósito: eso es el cuestionario de match (ver [[modulos/Perfiles]]), al que la pestaña "Mi perfil de match" solo linkea en vez de duplicar el formulario — ver [[modulos/Cuenta]].
 
 ### Módulo estudiante (buscador de alojamiento)
@@ -122,6 +145,7 @@ Ver también: [[glosario]] · [[convenciones/backend]] · [[convenciones/fronten
 - [ ] `MySpacesList.jsx` — administrar habitaciones publicadas. Backend ya soporta `GET /api/space/mine`, falta la pantalla.
 - [ ] `NewSpaceForm.jsx` — alta de alojamiento por pasos. Backend ya soporta `POST /api/space` + `POST /api/space/{id}/photos`, falta la pantalla.
 - [ ] `IncomingRequests.jsx` — gestión de solicitudes recibidas (aceptar/rechazar). Misma nota de inconsistencia que `ApplicationsList.jsx`.
+- [x] **(construida 2026-08-21, pendiente de validar con la clienta)** `InterestedStudentsPage.tsx` (`/interesados`) + `StudentDetailPage.tsx` (`/interesados/:studentUserId`) — cuadrícula de estudiantes que ya le dieron like al host y todavía no decidió, mismo patrón visual que `SpaceDetailPage.tsx`. Backend nuevo: `GET /api/match/interested` + `GET /api/match/interested/{studentUserId}` (`[Authorize(Roles = "Host")]`), sin migración (reusa `ProfileLike`). Ver detalle completo en [[modulos/Match]]. Falta: agregar el link en `Header.tsx`/`FloatingNav.tsx` (hoy solo se accede escribiendo la URL) y probar con datos reales.
 
 ---
 

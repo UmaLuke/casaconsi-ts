@@ -8,4 +8,6 @@ public interface IMatchService
     Task<List<MatchFeedItemDto>> GetFeedAsync(string userId, UserRole role);
     Task<LikeResponseDto> RegisterDecisionAsync(string userId, UserRole role, string targetUserId, bool liked);
     Task<List<MatchSummaryDto>> GetMatchesAsync(string userId, UserRole role);
+    Task<List<InterestedStudentDto>> GetInterestedStudentsAsync(string hostUserId);
+    Task<StudentDetailDto> GetInterestedStudentDetailAsync(string hostUserId, string studentUserId);
 }

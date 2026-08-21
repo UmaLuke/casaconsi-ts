@@ -1,17 +1,9 @@
 // src/services/matchService.ts
-// Espejo del patrón de questionnaireService.ts: request autenticado con el
-// header Authorization. Conecta el listado de matches confirmados
-// (GET /api/match), el feed de descubrimiento (GET /api/match/feed, usado
-// por DiscoverPage.tsx) y la decisión de like/pass sobre un perfil
-// (POST /api/match/like) — esta última se usa tanto desde DiscoverPage
-// (swipe sobre el feed) como desde ExploreSpacesPage/SpaceDetailsModal
-// (like/pass sobre el anfitrión dueño de un Space).
-import type { MatchSummary, LikeResponse, MatchFeedItem } from '../types/match';
+import type { MatchSummary, LikeResponse, MatchFeedItem, InterestedStudent, StudentDetail } from '../types/match';
 import { apiFetch } from './httpClient';
 
 export class MatchError extends Error {}
 
-// Espejo de MatchSummaryDto en CasaConSi.Api/DTOs/Match/MatchDtos.cs
 interface MatchSummaryDto {
   id: string;
   counterpartUserId: string;
@@ -20,13 +12,11 @@ interface MatchSummaryDto {
   createdAt: string;
 }
 
-// Espejo de LikeResponseDto en CasaConSi.Api/DTOs/Match/MatchDtos.cs
 interface LikeResponseDto {
   isMatch: boolean;
   matchId: string | null;
 }
 
-// Espejo de MatchFeedItemDto en CasaConSi.Api/DTOs/Match/MatchDtos.cs
 interface MatchFeedItemDto {
   userId: string;
   fullName: string;
@@ -34,6 +24,29 @@ interface MatchFeedItemDto {
   presentationMediaUrl: string | null;
   aboutMe: string;
   neighborhoods: string[];
+}
+
+interface InterestedStudentDto {
+  userId: string;
+  fullName: string;
+  profilePhotoUrl: string | null;
+  studyOrWorkSummary: string;
+  trustScore: number;
+  trustLevel: InterestedStudent['trustLevel'];
+}
+
+interface StudentDetailDto {
+  userId: string;
+  fullName: string;
+  photoUrls: string[];
+  aboutMe: string;
+  motivation: string;
+  preferredNeighborhoods: string[];
+  studyOrWorkSummary: string;
+  stayDuration: string;
+  generation: StudentDetail['generation'];
+  trustScore: number;
+  trustLevel: StudentDetail['trustLevel'];
 }
 
 const authHeaders = (token: string): HeadersInit => ({ Authorization: `Bearer ${token}` });
@@ -45,11 +58,6 @@ const handleMatchResponse = async <T>(
   if (!response.ok) {
     const body = await response.json().catch(() => null);
     const message = body?.message ?? fallbackMessage;
-    // El body?.message cubre los errores de negocio (400 con { message }) que
-    // devuelve MatchController. Si esto se dispara, casi siempre es otra cosa
-    // (401 por token vencido/inválido, 500 sin body JSON, etc.) — se loguea
-    // acá para poder diagnosticarlo en la consola del navegador sin exponer
-    // detalles técnicos en el toast del usuario.
     if (!body?.message) {
       console.error(`[matchService] ${response.status} ${response.url} sin mensaje de error legible.`, body);
     }
@@ -75,52 +83,59 @@ const toFeedItem = (dto: MatchFeedItemDto): MatchFeedItem => ({
   neighborhoods: dto.neighborhoods,
 });
 
+const toInterestedStudent = (dto: InterestedStudentDto): InterestedStudent => ({
+  userId: dto.userId,
+  fullName: dto.fullName,
+  profilePhotoUrl: dto.profilePhotoUrl,
+  studyOrWorkSummary: dto.studyOrWorkSummary,
+  trustScore: dto.trustScore,
+  trustLevel: dto.trustLevel,
+});
+
+const toStudentDetail = (dto: StudentDetailDto): StudentDetail => ({
+  userId: dto.userId,
+  fullName: dto.fullName,
+  photoUrls: dto.photoUrls,
+  aboutMe: dto.aboutMe,
+  motivation: dto.motivation,
+  preferredNeighborhoods: dto.preferredNeighborhoods,
+  studyOrWorkSummary: dto.studyOrWorkSummary,
+  stayDuration: dto.stayDuration,
+  generation: dto.generation,
+  trustScore: dto.trustScore,
+  trustLevel: dto.trustLevel,
+});
+
 export const getMatches = async (token: string): Promise<MatchSummary[]> => {
-  const response = await apiFetch(`/api/match`, {
-    headers: authHeaders(token),
-  });
-  const dtos = await handleMatchResponse<MatchSummaryDto[]>(
-    response,
-    'No se pudieron cargar tus matches. Probá de nuevo.',
-  );
+  const response = await apiFetch(`/api/match`, { headers: authHeaders(token) });
+  const dtos = await handleMatchResponse<MatchSummaryDto[]>(response, 'No se pudieron cargar tus matches. Probá de nuevo.');
   return dtos.map(toMatchSummary);
 };
 
-// Feed de descubrimiento: perfiles del rol opuesto que el usuario todavía no
-// swipeó, ya filtrados por generación opuesta (ver MatchService.GetFeedAsync
-// en el backend). Si el usuario autenticado no completó el cuestionario
-// (Generation == null), el backend responde 400 con un mensaje claro.
 export const getFeed = async (token: string): Promise<MatchFeedItem[]> => {
-  const response = await apiFetch(`/api/match/feed`, {
-    headers: authHeaders(token),
-  });
-  const dtos = await handleMatchResponse<MatchFeedItemDto[]>(
-    response,
-    'No se pudieron cargar los perfiles. Probá de nuevo.',
-  );
+  const response = await apiFetch(`/api/match/feed`, { headers: authHeaders(token) });
+  const dtos = await handleMatchResponse<MatchFeedItemDto[]>(response, 'No se pudieron cargar los perfiles. Probá de nuevo.');
   return dtos.map(toFeedItem);
 };
 
-// Registra la decisión (like/pass) del usuario autenticado sobre un perfil
-// (el de `DiscoverPage` en el feed, o el del anfitrión dueño de un Space en
-// ExploreSpacesPage/SpaceDetailsModal). El rol (Student/Host) se resuelve en
-// el backend a partir del JWT, no hace falta mandarlo.
-export const registerLikeDecision = async (
-  token: string,
-  targetUserId: string,
-  liked: boolean,
-): Promise<LikeResponse> => {
+export const registerLikeDecision = async (token: string, targetUserId: string, liked: boolean): Promise<LikeResponse> => {
   const response = await apiFetch(`/api/match/like`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...authHeaders(token),
-    },
+    headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
     body: JSON.stringify({ targetUserId, liked }),
   });
-  const dto = await handleMatchResponse<LikeResponseDto>(
-    response,
-    'No se pudo registrar tu decisión. Probá de nuevo.',
-  );
+  const dto = await handleMatchResponse<LikeResponseDto>(response, 'No se pudo registrar tu decisión. Probá de nuevo.');
   return { isMatch: dto.isMatch, matchId: dto.matchId };
+};
+
+export const getInterestedStudents = async (token: string): Promise<InterestedStudent[]> => {
+  const response = await apiFetch(`/api/match/interested`, { headers: authHeaders(token) });
+  const dtos = await handleMatchResponse<InterestedStudentDto[]>(response, 'No se pudieron cargar los estudiantes interesados. Probá de nuevo.');
+  return dtos.map(toInterestedStudent);
+};
+
+export const getInterestedStudentDetail = async (token: string, studentUserId: string): Promise<StudentDetail> => {
+  const response = await apiFetch(`/api/match/interested/${studentUserId}`, { headers: authHeaders(token) });
+  const dto = await handleMatchResponse<StudentDetailDto>(response, 'No se pudo cargar este perfil. Probá de nuevo.');
+  return toStudentDetail(dto);
 };

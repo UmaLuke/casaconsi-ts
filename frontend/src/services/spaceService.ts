@@ -20,6 +20,7 @@ interface SpaceResponseDto {
   hostUserId: string;
   hostName: string;
   title: string;
+  description: string;
   location: string;
   neighborhood: string;
   price: number;
@@ -32,6 +33,9 @@ interface SpaceResponseDto {
   imageUrl: string | null;
   photoUrls: string[];
   verified: boolean;
+  hostAboutMe: string | null;
+  hostTrustScore: number;
+  hostTrustLevel: Space['hostTrustLevel']; // VerificationLevel
 }
 
 // ExternalImageUrl (seed/demo) ya es absoluta; una foto real subida (Space o
@@ -50,6 +54,7 @@ const toSpace = (dto: SpaceResponseDto): Space => ({
   hostUserId: dto.hostUserId,
   hostName: dto.hostName,
   title: dto.title,
+  description: dto.description,
   location: dto.location,
   neighborhood: dto.neighborhood,
   price: dto.price,
@@ -62,6 +67,9 @@ const toSpace = (dto: SpaceResponseDto): Space => ({
   imageUrl: toImageUrl(dto.imageUrl),
   photoUrls: toPhotoUrls(dto.photoUrls),
   verified: dto.verified,
+  hostAboutMe: dto.hostAboutMe,
+  hostTrustScore: dto.hostTrustScore,
+  hostTrustLevel: dto.hostTrustLevel,
 });
 
 export const getSpaces = async (): Promise<Space[]> => {
@@ -71,4 +79,15 @@ export const getSpaces = async (): Promise<Space[]> => {
   }
   const dtos: SpaceResponseDto[] = await response.json();
   return dtos.map(toSpace);
+};
+
+export const getSpaceById = async (id: string): Promise<Space> => {
+  const response = await apiFetch(`/api/space/${id}`);
+  if (!response.ok) {
+    throw new SpaceError(
+      response.status === 404 ? 'Este espacio ya no está disponible.' : 'No se pudo cargar este espacio. Probá de nuevo.',
+    );
+  }
+  const dto: SpaceResponseDto = await response.json();
+  return toSpace(dto);
 };

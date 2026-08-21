@@ -15,6 +15,10 @@ import { AdvisoryPage } from './pages/AdvisoryPage';
 import { StudentQuestionnairePage } from './pages/questionnaire/StudentQuestionnairePage';
 import { HostQuestionnairePage } from './pages/questionnaire/HostQuestionnairePage';
 import {RegisterAdvisorPage} from './pages/auth/RegisterAdvisorPage';
+import { SpaceDetailPage } from './pages/SpaceDetailPage';
+import { InterestedStudentsPage } from './pages/InterestedStudentsPage';
+import { StudentDetailPage } from './pages/StudentDetailPage';
+
 
 const LandingPageLayout = () => {
   return (
@@ -75,6 +79,7 @@ export const App = () => {
             }
           />
           <Route path="/explorar" element={<ExploreSpacesPage />} />
+          <Route path="/espacios/:id" element={<SpaceDetailPage />} />
           <Route
             path="/descubrir"
             element={
@@ -91,6 +96,24 @@ export const App = () => {
               </ProtectedRoute>
             }
           />
+          
+          <Route
+            path="/interesados"
+            element={
+              <ProtectedRoute>
+                <InterestedStudentsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/interesados/:studentUserId"
+            element={
+              <ProtectedRoute>
+                <StudentDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="/asesorias" element={<AdvisoryPage />} />
         </Routes>
       </AuthProvider>

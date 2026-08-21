@@ -11,6 +11,7 @@ public record SpaceResponseDto
     public required string HostUserId { get; init; }
     public required string HostName { get; init; }
     public required string Title { get; init; }
+    public required string Description { get; init; }
     public required string Location { get; init; }
     public required string Neighborhood { get; init; }
     public required decimal Price { get; init; }
@@ -21,14 +22,11 @@ public record SpaceResponseDto
     public required string Duration { get; init; }
     public required List<string> Amenities { get; init; }
     public string? ImageUrl { get; init; }
-    // Para el carrusel del modal de detalle: fotos propias del Space
-    // (PhotoPaths) si el anfitrión subió alguna; si no, cae a las fotos
-    // generales de su HostProfile (HomePhotoPaths); si tampoco hay, cae al
-    // ExternalImageUrl de seed. ImageUrl arriba es siempre PhotoUrls[0] (o
-    // null si la lista queda vacía) — se mantiene por compatibilidad con la
-    // card de la grilla, que solo necesita una miniatura.
     public required List<string> PhotoUrls { get; init; }
     public required bool Verified { get; init; }
+    public string? HostAboutMe { get; init; }
+    public required int HostTrustScore { get; init; }
+    public required VerificationLevel HostTrustLevel { get; init; }
 }
 
 public record CreateSpaceRequestDto

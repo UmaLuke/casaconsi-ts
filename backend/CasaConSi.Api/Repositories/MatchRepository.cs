@@ -93,5 +93,19 @@ public class MatchRepository : IMatchRepository
     public Task<List<Match>> GetMatchesForHostAsync(string hostUserId) =>
         _context.Matches.Where(m => m.HostUserId == hostUserId).ToListAsync();
 
+    public async Task<List<StudentProfile>> GetInterestedStudentProfilesAsync(string hostUserId)
+    {
+        var likedStudentIds = _context.ProfileLikes
+            .Where(l => l.HostUserId == hostUserId && l.DecidedByRole == UserRole.Student && l.Liked)
+            .Select(l => l.StudentUserId);
+
+        var hostDecidedStudentIds = _context.ProfileLikes
+            .Where(l => l.HostUserId == hostUserId && l.DecidedByRole == UserRole.Host)
+            .Select(l => l.StudentUserId);
+
+        return await _context.StudentProfiles
+            .Where(s => likedStudentIds.Contains(s.UserId) && !hostDecidedStudentIds.Contains(s.UserId))
+            .ToListAsync();
+    }
     public Task SaveChangesAsync() => _context.SaveChangesAsync();
 }
