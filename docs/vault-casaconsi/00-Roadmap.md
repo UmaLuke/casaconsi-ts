@@ -160,7 +160,9 @@ Todavía sin desarrollar — quedan anotados acá para no perderlos, con las pre
 
 ## 🔐 Módulo Admin (pendiente, no iniciado)
 
-- [ ] Panel/perfil admin en el frontend: hoy solo existe `AdminSeeder` + flag `IsAdmin` en el backend (ver `memory`/[[modulos/Auth]]), no hay pantalla ni rutas de administración. Falta definir alcance (gestión de usuarios, moderación de Spaces, aprobación de perfiles, etc.) antes de construir.
+- [x] **(2026-08-21)** Cuenta admin de desarrollo creada localmente vía `dotnet user-secrets` (`AdminSeed:Email`/`Password`, ver [[modulos/Auth]] → sección Admin) — permite entrar a `/dashboard` para ir probando. No es un flujo self-service ni un endpoint: solo sirve en esta máquina, hay que repetir los mismos dos comandos en cualquier otro entorno (otra PC, staging, etc.).
+- [ ] Panel/perfil admin en el frontend: la pantalla ya existe (`DashboardPage.tsx`, ruta `/dashboard`, gateada por `<ProtectedRoute requireAdmin>`) pero es un shell vacío — sidebar con botones sin conectar (Usuarios/Estadísticas/Verificaciones/Mensajes/Configuración) y las 3 tarjetas de contador muestran "—"/"Pendiente de conectar". *Corrección: esta nota decía antes "no hay pantalla ni rutas de administración" — quedó desactualizada, el placeholder ya está construido.* Falta definir alcance (gestión de usuarios, moderación de Spaces, aprobación de perfiles, etc.) y construirlo de a poco — arrancando por gestión de usuarios (ver charla 2026-08-21).
+- [ ] ⚠️ **Bloqueante para cualquier endpoint admin real:** el JWT no lleva el rol "Admin" como claim (`TokenService` solo agrega el `UserRole` de negocio) — hoy `[Authorize(Roles = "Admin")]` en el backend no reconocería a nadie como admin. Ver detalle y solución propuesta en [[modulos/Auth]] → sección Admin. Resolver esto antes de construir el primer endpoint de `/api/admin/*`.
 
 ---
 

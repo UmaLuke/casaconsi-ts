@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "datos-demo.md",
+                "file": "00-Roadmap.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "datos-demo"
+              "title": "00-Roadmap"
             }
           }
         ],
@@ -188,16 +188,16 @@
   },
   "active": "b748ad3009e0439d",
   "lastOpenFiles": [
+    "Cuenta creada.md",
+    "datos-demo.md",
     "00-Roadmap.md.tmp.18852.27fa551d20b8",
     "00-Roadmap.md.tmp.15688.68d69f83d6db",
     "00-Roadmap.md.tmp.15688.5373d098572f",
     "00-Roadmap.md",
-    "Cuenta creada.md",
     "modulos/Confianza.md",
     "modulos/Asesorias.md",
     "decisiones/_plantilla-ADR.md",
     "convenciones/backend.md",
-    "datos-demo.md",
     "00-Roadmap.md.tmp.1788.3eb4d58a4b3d",
     "convenciones/http-client.md.tmp.16960.dc05b80ae053",
     "modulos/Chat.md",
@@ -207,7 +207,6 @@
     "modulos/Match.md.tmp.4472.0f99dc354dba",
     "modulos/Space.md.tmp.4472.c71f14dc03e9",
     "modulos/Perfiles.md.tmp.4472.1adf5dd7498d",
-    "modulos/Cuenta.md.tmp.4472.f0b4a2135429",
     "convenciones/http-client.md",
     "convenciones/frontend.md",
     "modulos/Perfiles.md",

@@ -31,8 +31,4 @@ public class UpdateTrustItemsRequestDto
     public bool? CreditStatusVerified { get; set; }
     public bool? ProofOfStatusVerified { get; set; }
     public bool? SwornDeclarationAccepted { get; set; }
-    public bool? PersonalReferencesVerified { get; set; }
-    public bool? VirtualInterviewCompleted { get; set; }
-    public bool? CriminalRecordVerified { get; set; }
-    public bool? CohabitationHistoryVerified { get; set; }
 }

@@ -36,15 +36,14 @@ export const DashboardPage = () => {
             Inicio
           </button>
           <button className="flex items-center gap-3 w-full px-3 py-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 rounded-lg font-medium transition-colors">
-            <Users className="size-5" /> Usuarios
+            <Users className="size-5" /> Perfiles
           </button>
           <button className="flex items-center gap-3 w-full px-3 py-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 rounded-lg font-medium transition-colors">
             <BarChart3 className="size-5" /> Estadísticas
           </button>
-          <button className="flex items-center gap-3 w-full px-3 py-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 rounded-lg font-medium transition-colors">
+          <Link to="/dashboard/verificaciones" className="flex items-center gap-3 w-full px-3 py-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 rounded-lg font-medium transition-colors">
             <ShieldCheck className="size-5" /> Verificaciones
-          </button>
-
+          </Link>
           <p className="px-3 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-6">
             Cuenta
           </p>
@@ -111,7 +110,7 @@ export const DashboardPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="card bg-white shadow-sm border-2 border-brand-orange">
                 <div className="card-body p-6">
-                  <h2 className="card-title text-slate-500 text-sm">Usuarios registrados</h2>
+                  <h2 className="card-title text-slate-500 text-sm">Perfiles registrados</h2>
                   <p className="text-4xl font-black text-slate-900">—</p>
                   <p className="text-xs text-slate-400 font-bold mt-2">Pendiente de conectar</p>
                 </div>

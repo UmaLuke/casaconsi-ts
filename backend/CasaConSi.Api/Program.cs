@@ -127,6 +127,7 @@ builder.Services.AddDataProtection()
 builder.Services.AddScoped<CasaConSi.Api.Repositories.Interfaces.ITrustRepository, CasaConSi.Api.Repositories.TrustRepository>();
 builder.Services.AddScoped<CasaConSi.Api.Services.Interfaces.ITrustService, CasaConSi.Api.Services.TrustService>();
 Directory.CreateDirectory(Path.Combine(builder.Environment.ContentRootPath, "wwwroot"));
+builder.Services.AddScoped<CasaConSi.Api.Services.Interfaces.IAdminVerificationService, CasaConSi.Api.Services.AdminVerificationService>();
 
 var app = builder.Build();
 

@@ -38,4 +38,10 @@ public class TrustController : ControllerBase
         var response = await _trustService.UpdateItemsAsync(CurrentUserId, request);
         return Ok(response);
     }
+    [HttpPost("solicitar-alta-confianza")]
+    public async Task<ActionResult<TrustStatusResponseDto>> RequestAltaConfianza()
+    {
+        var response = await _trustService.RequestAltaConfianzaAsync(CurrentUserId);
+        return Ok(response);
+    }
 }

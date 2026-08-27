@@ -1,5 +1,6 @@
 using CasaConSi.Api.Data;
 using CasaConSi.Api.Models;
+using CasaConSi.Api.Models.Enums;
 using CasaConSi.Api.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,16 @@ public class TrustRepository : ITrustRepository
 
     public Task<ProfileVerification?> GetByUserIdAsync(string userId) =>
         _db.ProfileVerifications.FirstOrDefaultAsync(v => v.UserId == userId);
+
+    public Task<ProfileVerification?> GetByUserIdWithUserAsync(string userId) =>
+        _db.ProfileVerifications.Include(v => v.User).FirstOrDefaultAsync(v => v.UserId == userId);
+
+    public Task<List<ProfileVerification>> GetPendingAltaConfianzaAsync() =>
+        _db.ProfileVerifications
+            .Include(v => v.User)
+            .Where(v => v.AltaConfianzaStatus == VerificationReviewStatus.Pendiente)
+            .OrderBy(v => v.AltaConfianzaRequestedAtUtc)
+            .ToListAsync();
 
     public async Task<ProfileVerification> GetOrCreateAsync(string userId)
     {

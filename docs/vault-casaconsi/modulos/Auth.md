@@ -17,6 +17,23 @@ tags: [modulo, backend, frontend, auth]
 - Política de contraseña: mínimo 8 caracteres, mayúscula + minúscula + dígito + carácter no alfanumérico.
 - **(2026-08-10)** `AuthResponseDto` ahora incluye `Gallery` (bug encontrado, no funcionalidad nueva): `AuthService.BuildAuthResponseAsync` no mandaba la galería de fotos de la cuenta (`ApplicationUser.GalleryPhotoPaths`) en `register`/`login`, a pesar de que `User` (frontend) la declara como campo obligatorio (`gallery: string[]`) desde que se armó la galería en [[Cuenta]]. Efecto real, no solo de tipos: cada login "fresco" (cerrar sesión y volver a entrar, o entrar desde otro dispositivo) pisaba el `user` en `localStorage` con `gallery: []`, y la pestaña de galería en `ProfilePage.tsx` se veía vacía hasta que la persona subía o borraba una foto (esas respuestas sí traen la lista completa) — las fotos seguían intactas en el servidor, pero no se mostraban. Fix: `AuthService.BuildAuthResponseAsync` ahora mapea `GalleryPhotoPaths` a URLs con el mismo `ToUrl` que ya usa `AccountService.ToDtoAsync` (mismo patrón, dos copias del helper — no se extrajo a un lugar común porque `AuthService`/`AccountService` no comparten una base).
 
+## Admin (rol de Identity, separado del `UserRole` de negocio)
+
+`Admin` es un rol de ASP.NET Identity (`RoleManager<IdentityRole>`), **no** un valor del enum `UserRole` (que sigue siendo solo `Host`/`Student`/`Advisor`) — cualquier cuenta, sea Host o Student, puede además pertenecer al rol Admin.
+
+- `Data/AdminSeeder.cs` corre una vez al arrancar el backend (`Program.cs`, antes de `DemoProfileSeeder`). Es idempotente: si el rol o el usuario ya existen, no hace nada.
+- Sin credenciales configuradas no crea nada — no es un error, simplemente no hay admin. Las credenciales van por `dotnet user-secrets` (`AdminSeed:Email`/`AdminSeed:Password`), nunca en `appsettings.json` — ahí quedan a propósito vacías, mismo criterio que `Jwt:Key`.
+- Para crear/actualizar el admin local:
+  ```
+  cd backend/CasaConSi.Api
+  dotnet user-secrets set "AdminSeed:Email" "admin@casaconsi.com"
+  dotnet user-secrets set "AdminSeed:Password" "Admin2026!"
+  ```
+  y reiniciar `dotnet run` — el seeder crea la cuenta (o le suma el rol Admin si el email ya existía con otro rol).
+- **(2026-08-21)** Cuenta admin de desarrollo creada con esas credenciales (`admin@casaconsi.com` / `Admin2026!`) — solo en `dotnet user-secrets` de esta máquina, no se commitea a ningún lado. Sirve para entrar a `/dashboard` (gateado en el frontend por `<ProtectedRoute requireAdmin>`, ver [[00-Roadmap]] → Módulo Admin).
+- `IsAdmin` no es una columna de `ApplicationUser`: se calcula en el momento con `userManager.IsInRoleAsync(user, "Admin")`, tanto en `AuthService.BuildAuthResponseAsync` como en `AccountService.ToDtoAsync`.
+- ⚠️ **Gotcha detectado (2026-08-21), sin corregir todavía:** `TokenService.GenerateToken` solo agrega `ClaimTypes.Role` con el `UserRole` de negocio (Host/Student/Advisor) — el JWT nunca lleva el rol "Admin". Hoy eso no rompe nada porque ningún endpoint usa `[Authorize(Roles = "Admin")]` todavía, pero apenas se agregue uno para el panel real, no va a reconocer a nadie como admin del lado del backend — el gate de `/dashboard` hoy vive *solo* en el frontend (chequea `user.isAdmin`, que sí viaja bien en el `AuthResponseDto`). Antes de construir cualquier endpoint de administración real hay que resolver esto: la solución más simple es que `AuthService.BuildAuthResponseAsync` calcule `isAdmin` *antes* de llamar a `GenerateToken` y se lo pase como parámetro, y que `TokenService` agregue un segundo `ClaimTypes.Role = "Admin"` cuando corresponda (`[Authorize(Roles=...)]` soporta múltiples claims del mismo tipo, mismo patrón que ya usa el `UserRole` de negocio en `MatchController`/`SpaceController`).
+
 ## Frontend
 
 - `User` (tipo): `id: string` no opcional (corregido).

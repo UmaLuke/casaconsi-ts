@@ -16,7 +16,7 @@ public class TokenService : ITokenService
         _configuration = configuration;
     }
 
-    public (string Token, DateTime ExpiresAt) GenerateToken(ApplicationUser user)
+    public (string Token, DateTime ExpiresAt) GenerateToken(ApplicationUser user, bool isAdmin)
     {
         var jwtKey = _configuration["Jwt:Key"]
             ?? throw new InvalidOperationException("Falta Jwt:Key en la configuración.");
@@ -30,6 +30,11 @@ public class TokenService : ITokenService
             new(ClaimTypes.Name, user.Name),
             new(ClaimTypes.Role, user.Role.ToString()),
         };
+
+        if (isAdmin)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, "Admin"));
+        }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

@@ -18,6 +18,8 @@ import {RegisterAdvisorPage} from './pages/auth/RegisterAdvisorPage';
 import { SpaceDetailPage } from './pages/SpaceDetailPage';
 import { InterestedStudentsPage } from './pages/InterestedStudentsPage';
 import { StudentDetailPage } from './pages/StudentDetailPage';
+import { VerificationsQueuePage } from './pages/admin/VerificationsQueuePage';
+import { VerificationDetailPage } from './pages/admin/VerificationDetailPage';
 
 
 const LandingPageLayout = () => {
@@ -67,6 +69,22 @@ export const App = () => {
             element={
               <ProtectedRoute requireAdmin>
                 <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/verificaciones"
+            element={
+              <ProtectedRoute requireAdmin>
+                <VerificationsQueuePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/verificaciones/:userId"
+            element={
+              <ProtectedRoute requireAdmin>
+                <VerificationDetailPage />
               </ProtectedRoute>
             }
           />

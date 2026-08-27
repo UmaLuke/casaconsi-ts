@@ -1,3 +1,5 @@
+using CasaConSi.Api.Models.Enums;
+
 namespace CasaConSi.Api.Models;
 
 // 1:1 con ApplicationUser — mismo patrón que StudentProfile/HostProfile.
@@ -24,6 +26,10 @@ public class ProfileVerification
     public bool VirtualInterviewCompleted { get; set; }  // 8. Entrevista virtual (10 min)
     public bool CriminalRecordVerified { get; set; }     // 9. Certificado de antecedentes penales (RNR)
     public bool CohabitationHistoryVerified { get; set; } // 10. Historial de convivencia en la plataforma
-
+    public VerificationReviewStatus AltaConfianzaStatus { get; set; } = VerificationReviewStatus.NoSolicitado;
+    public DateTime? AltaConfianzaRequestedAtUtc { get; set; }
+    public DateTime? AltaConfianzaReviewedAtUtc { get; set; }
+    public string? AltaConfianzaReviewedByUserId { get; set; }
+    public string? AltaConfianzaRejectionReason { get; set; }
     public DateTime UpdatedAtUtc { get; set; } = DateTime.UtcNow;
 }

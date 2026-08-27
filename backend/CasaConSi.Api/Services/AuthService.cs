@@ -58,8 +58,8 @@ public class AuthService : IAuthService
 
     private async Task<AuthResponseDto> BuildAuthResponseAsync(ApplicationUser user)
     {
-        var (token, expiresAt) = _tokenService.GenerateToken(user);
         var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+        var (token, expiresAt) = _tokenService.GenerateToken(user, isAdmin);
 
         return new AuthResponseDto
         {

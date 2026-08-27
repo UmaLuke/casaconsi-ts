@@ -32,9 +32,8 @@ public class TrustService : ITrustService
         var user = await _userManager.FindByIdAsync(userId)
             ?? throw new InvalidOperationException("Usuario no encontrado.");
         var verification = await _trustRepository.GetOrCreateAsync(userId);
-        var isPremium = user.MembershipTier == MembershipTier.Premium;
 
-        // Ítems 1-6: disponibles para cualquier tier.
+        // Ítems 1-6: disponibles para cualquier tier, autodeclarados.
         if (request.IdentityVerified.HasValue) verification.IdentityVerified = request.IdentityVerified.Value;
         if (request.ContactVerified.HasValue) verification.ContactVerified = request.ContactVerified.Value;
         if (request.SocialMediaVerified.HasValue) verification.SocialMediaVerified = request.SocialMediaVerified.Value;
@@ -42,18 +41,29 @@ public class TrustService : ITrustService
         if (request.ProofOfStatusVerified.HasValue) verification.ProofOfStatusVerified = request.ProofOfStatusVerified.Value;
         if (request.SwornDeclarationAccepted.HasValue) verification.SwornDeclarationAccepted = request.SwornDeclarationAccepted.Value;
 
-        // Ítems 7-10: solo Premium puede marcarlos en true. Si no es Premium
-        // y manda true, se ignora (queda como estaba) en vez de tirar error,
-        // para no romper un PUT parcial por un solo campo no habilitado.
-        if (request.PersonalReferencesVerified.HasValue && (isPremium || !request.PersonalReferencesVerified.Value))
-            verification.PersonalReferencesVerified = request.PersonalReferencesVerified.Value;
-        if (request.VirtualInterviewCompleted.HasValue && (isPremium || !request.VirtualInterviewCompleted.Value))
-            verification.VirtualInterviewCompleted = request.VirtualInterviewCompleted.Value;
-        if (request.CriminalRecordVerified.HasValue && (isPremium || !request.CriminalRecordVerified.Value))
-            verification.CriminalRecordVerified = request.CriminalRecordVerified.Value;
-        if (request.CohabitationHistoryVerified.HasValue && (isPremium || !request.CohabitationHistoryVerified.Value))
-            verification.CohabitationHistoryVerified = request.CohabitationHistoryVerified.Value;
+        // Ítems 7-10: ya NO se autodeclaran acá. Solo cambian vía
+        // RequestAltaConfianzaAsync (pendiente) + AdminVerificationService (aprobado/rechazado).
 
+        verification.UpdatedAtUtc = DateTime.UtcNow;
+        await _trustRepository.SaveChangesAsync();
+
+        return BuildResponse(user, verification);
+    }
+
+    public async Task<TrustStatusResponseDto> RequestAltaConfianzaAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId)
+            ?? throw new InvalidOperationException("Usuario no encontrado.");
+        if (user.MembershipTier != MembershipTier.Premium)
+            throw new InvalidOperationException("Solo los usuarios Premium pueden solicitar Alta Confianza.");
+
+        var verification = await _trustRepository.GetOrCreateAsync(userId);
+        if (verification.AltaConfianzaStatus == VerificationReviewStatus.Pendiente)
+            throw new InvalidOperationException("Ya hay una solicitud de Alta Confianza pendiente de revisión.");
+
+        verification.AltaConfianzaStatus = VerificationReviewStatus.Pendiente;
+        verification.AltaConfianzaRequestedAtUtc = DateTime.UtcNow;
+        verification.AltaConfianzaRejectionReason = null;
         verification.UpdatedAtUtc = DateTime.UtcNow;
         await _trustRepository.SaveChangesAsync();
 

@@ -11,13 +11,14 @@ interface FloatingNavItem {
 
 // "/" es la landing pública (sin sesión) y "/dashboard" ya tiene su propio
 // sidebar de gestión por rol, así que el flotante no se muestra ahí.
-const HIDDEN_ROUTES = ['/', '/dashboard', '/cuestionario/buscar', '/cuestionario/ofrecer'];
+const HIDDEN_ROUTES = ['/', '/cuestionario/buscar', '/cuestionario/ofrecer'];
 
 export const FloatingNav = () => {
   const { user } = useAuth();
   const location = useLocation();
 
-  if (!user || HIDDEN_ROUTES.includes(location.pathname)) return null;
+  const isDashboardRoute = location.pathname.startsWith('/dashboard');
+  if (!user || isDashboardRoute || HIDDEN_ROUTES.includes(location.pathname)) return null;
 
   // "Inicio" depende del rol: el Host descubre perfiles de estudiantes
   // (/descubrir), el Student explora Spaces (/explorar) — mismo criterio que

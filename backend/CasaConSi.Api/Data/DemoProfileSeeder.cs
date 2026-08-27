@@ -221,6 +221,12 @@ public static class DemoProfileSeeder
         var verification = new ProfileVerification { Id = Guid.NewGuid(), UserId = user.Id };
         ApplyTrustScore(verification, seed.TrustScore, seed.MembershipTier);
 
+        if (seed.RequestAltaConfianza)
+        {
+            verification.AltaConfianzaStatus = VerificationReviewStatus.Pendiente;
+            verification.AltaConfianzaRequestedAtUtc = DateTime.UtcNow.AddDays(-seed.AltaConfianzaRequestedDaysAgo);
+        }
+
         db.StudentProfiles.Add(profile);
         db.ProfileVerifications.Add(verification);
         await db.SaveChangesAsync();
@@ -370,6 +376,8 @@ public static class DemoProfileSeeder
         public required Generation Generation { get; init; }
         public MembershipTier MembershipTier { get; init; } = MembershipTier.Freemium;
         public int TrustScore { get; init; } = 6; // 0..10, ver ApplyTrustScore
+        public bool RequestAltaConfianza { get; init; } = false;
+        public int AltaConfianzaRequestedDaysAgo { get; init; } = 1;
         public required string ProfilePhotoFileName { get; init; }
         public string ContactPhone { get; init; } = "3511234567";
         public string EmergencyContactName { get; init; } = "Contacto de emergencia";
@@ -428,17 +436,9 @@ public static class DemoProfileSeeder
         public required Generation Generation { get; init; }
         public MembershipTier MembershipTier { get; init; } = MembershipTier.Freemium;
         public int TrustScore { get; init; } = 6; // 0..10, ver ApplyTrustScore
-        // Fotos: mismo mecanismo que StudentSeed.ProfilePhotoFileName — se
-        // copian desde Data/DemoAssets/ a wwwroot/uploads/profiles/{userId}/
-        // vía CopyDemoProfilePhoto. HomePhotoFileNames apunta a archivos en
-        // Data/DemoAssets/; Rosa y Carlos todavía comparten el pool genérico
-        // casa-*.jpg (placeholders, no hay fotos reales de sus casas todavía).
-        // Elena tiene fotos propias (elena-casa.jpg, elena-living.jpg) — al
-        // sumarle fotos reales a otro host, no reusar un nombre ya usado por
-        // otro (ver CopyDemoProfilePhoto: cada host tiene su propia carpeta
-        // profiles/{userId}/, pero el archivo FUENTE en Data/DemoAssets/ es
-        // compartido si el nombre coincide).
-        public required string ProfilePhotoFileName { get; init; }
+        public bool RequestAltaConfianza { get; init; } = false;
+        public int AltaConfianzaRequestedDaysAgo { get; init; } = 1;
+        public required string ProfilePhotoFileName { get; init; } 
         public List<string> HomePhotoFileNames { get; init; } = new();
         public string ContactPhone { get; init; } = "3511234567";
         public required string FamilyReferenceName { get; init; }
@@ -579,6 +579,7 @@ public static class DemoProfileSeeder
             Gender = "femenino",
             Generation = Generation.JovenAdulto,
             MembershipTier = MembershipTier.Freemium, TrustScore = 9,
+            RequestAltaConfianza = true, AltaConfianzaRequestedDaysAgo = 1,
             ProfilePhotoFileName = "sofia-gomez.jpg",
             EmergencyContactName = "Laura Gómez",
             EmergencyContactRelationship = "Madre",

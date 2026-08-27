@@ -117,6 +117,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
        builder.Entity<ProfileVerification>(entity =>
         {
             entity.HasIndex(v => v.UserId).IsUnique();
+            entity.HasIndex(v => v.AltaConfianzaStatus); // para la query de la cola de pendientes
             entity.HasOne(v => v.User)
                 .WithOne()
                 .HasForeignKey<ProfileVerification>(v => v.UserId)
