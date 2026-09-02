@@ -32,3 +32,25 @@ public class UpdateTrustItemsRequestDto
     public bool? ProofOfStatusVerified { get; set; }
     public bool? SwornDeclarationAccepted { get; set; }
 }
+public class SavePersonalReferencesRequestDto
+{
+    public required string Reference1Name { get; set; }
+    public required string Reference1Phone { get; set; }
+    public required string Reference1Relationship { get; set; }
+    public required string Reference2Name { get; set; }
+    public required string Reference2Phone { get; set; }
+    public required string Reference2Relationship { get; set; }
+}
+
+public class AltaConfianzaEvidenceDto
+{
+    public string? Reference1Name { get; set; }
+    public string? Reference1Phone { get; set; }
+    public string? Reference1Relationship { get; set; }
+    public string? Reference2Name { get; set; }
+    public string? Reference2Phone { get; set; }
+    public string? Reference2Relationship { get; set; }
+    public bool HasCriminalRecordDocument { get; set; }
+    public string? CriminalRecordDocumentUrl { get; set; }
+    public DateTime? CriminalRecordDocumentUploadedAtUtc { get; set; }
+}

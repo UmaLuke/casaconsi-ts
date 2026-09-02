@@ -4,6 +4,7 @@ using CasaConSi.Api.DTOs.Trust;
 using CasaConSi.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace CasaConSi.Api.Controllers;
 
@@ -42,6 +43,26 @@ public class TrustController : ControllerBase
     public async Task<ActionResult<TrustStatusResponseDto>> RequestAltaConfianza()
     {
         var response = await _trustService.RequestAltaConfianzaAsync(CurrentUserId);
+        return Ok(response);
+    }
+        [HttpGet("alta-confianza/evidencia")]
+    public async Task<ActionResult<AltaConfianzaEvidenceDto>> GetEvidence()
+    {
+        var response = await _trustService.GetEvidenceAsync(CurrentUserId);
+        return Ok(response);
+    }
+
+    [HttpPut("alta-confianza/referencias")]
+    public async Task<ActionResult<AltaConfianzaEvidenceDto>> SavePersonalReferences(SavePersonalReferencesRequestDto request)
+    {
+        var response = await _trustService.SavePersonalReferencesAsync(CurrentUserId, request);
+        return Ok(response);
+    }
+
+    [HttpPost("alta-confianza/antecedentes-documento")]
+    public async Task<ActionResult<AltaConfianzaEvidenceDto>> UploadCriminalRecordDocument(IFormFile file)
+    {
+        var response = await _trustService.UploadCriminalRecordDocumentAsync(CurrentUserId, file);
         return Ok(response);
     }
 }

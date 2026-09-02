@@ -44,18 +44,22 @@ Uno por cada anfitrión demo, con fotos vía `ExternalImageUrl` (URLs de Unsplas
 
 ## Nivel de confianza (módulo Confianza)
 
-Desde el 2026-08-06, `DemoProfileSeeder` también siembra `ProfileVerification` para los 6 perfiles, vía el helper `ApplyTrustScore` (completa los ítems 1..N en el orden fijo del docx "Verificación de Perfil", cappeado a 6 si el tier es Freemium — ver [[modulos/Confianza]] para el detalle completo del sistema). Estado actual, **en pruebas**:
+Desde el 2026-08-06, `DemoProfileSeeder` también siembra `ProfileVerification` para los 6 perfiles, vía el helper `ApplyTrustScore` (completa los ítems 1..N en el orden fijo del docx "Verificación de Perfil", cappeado a 6 si el tier es Freemium — ver [[modulos/Confianza]] para el detalle completo del sistema). Estado actual:
 
 | Nombre        | Email                     | `MembershipTier` | `TrustScore` seteado | Puntaje real (post-cap) | Nivel  | Insignia visible   |
-| ------------- | ------------------------- | ---------------- | -------------------- | ----------------------- | ------ | ------------------ |
-| Mía Fernández | mia.estudiante@demo.com   | Freemium         | 4                    | 4/10                    | Básico | `TrustBadge` (4/6) |
-| Juan Pérez    | juan.estudiante@demo.com  | Freemium         | 6                    | 6/10                    | Básico | `TrustBadge` (6/6) |
-| Sofía Gómez   | sofia.estudiante@demo.com | Freemium         | 9                    | **6/10** (cappeado)     | Básico | `TrustBadge` (6/6) |
-| Rosa Martínez | rosa.anfitriona@demo.com  | Freemium         | 10                   | **6/10** (cappeado)     | Básico | `TrustBadge` (6/6) |
-| Carlos Díaz   | carlos.anfitrion@demo.com | Freemium         | 2                    | 2/10                    | Básico | `TrustBadge` (2/6) |
-| Elena Ruiz    | elena.anfitriona@demo.com | Freemium         | 8                    | **6/10** (cappeado)     | Básico | `TrustBadge` (6/6) |
+| ------------- | ------------------------- | ----------------- | ---------------------- | ------------------------- | ------ | ------------------- |
+| Mía Fernández | mia.estudiante@demo.com   | Freemium           | 4                       | 4/10                       | Básico | `TrustBadge` (4/6)  |
+| Juan Pérez    | juan.estudiante@demo.com  | Freemium           | 6                       | 6/10                       | Básico | `TrustBadge` (6/6)  |
+| Sofía Gómez   | sofia.estudiante@demo.com | **Premium**        | 6                       | 6/10                       | Básico + **Alta Confianza pendiente** | `TrustBadge` (6/6) |
+| Rosa Martínez | rosa.anfitriona@demo.com  | Freemium ⚠️ ver nota | 10                    | **6/10** (cappeado) ⚠️ ver nota | Básico ⚠️ ver nota | `TrustBadge` (6/6) |
+| Carlos Díaz   | carlos.anfitrion@demo.com | Freemium           | 2                       | 2/10                       | Básico | `TrustBadge` (2/6)  |
+| Elena Ruiz    | elena.anfitriona@demo.com | Freemium           | 8                       | **6/10** (cappeado)        | Básico | `TrustBadge` (6/6)  |
 
-Las 6 cuentas quedaron en `MembershipTier.Freemium`, así que hoy **ninguna muestra el `PremiumBadge`** (el ícono `BadgeCheck` de lucide que pidió el cliente) — ese estado todavía no se probó visualmente. Para probarlo: cambiar `MembershipTier.Freemium` → `MembershipTier.Premium` en al menos una de las entradas con `TrustScore` > 6 (Sofía, Rosa o Elena, las candidatas naturales porque ya tienen el puntaje) en `DemoProfileSeeder.cs`, borrar esa cuenta de la base (ver el gotcha de `ProfileLikes`/`Matches` con `Restrict` en [[modulos/Confianza]] — no alcanza con un `DELETE` directo si ya tiene matches/likes) y reiniciar `dotnet run` para que el seeder la recree. Carlos se dejó a propósito en Freemium/bajo como ejemplo de "recién empezando".
+⚠️ Nota (2026-08-27, no corregido en esta pasada): la fila de Rosa Martínez en esta tabla quedó desactualizada — en [[modulos/Confianza]] figura como `Premium, 10/10, Alta confianza` desde el 2026-08-06 (se subió a mano para probar el diseño de `PremiumBadge`), pero acá seguía listada como Freemium/cappeada. Confiar en la tabla de [[modulos/Confianza]] para el estado real de Rosa; esta tabla quedó como estaba salvo por la fila de Sofía, que sí es la que cambió en esta sesión de trabajo.
+
+**Actualizado (2026-08-27):** Sofía Gómez pasó a `MembershipTier.Premium` con `TrustScore = 6` — dejó de ser la cuenta "cappeada en 6 sin sentido" y pasó a ser el caso de prueba de la cola de revisión de "Alta Confianza" del panel Admin (ver [[modulos/Confianza]] → "Panel Admin — cola de revisión de Alta Confianza"): `DemoProfileSeeder` la deja con `AltaConfianzaStatus = Pendiente` (flag nuevo `RequestAltaConfianza = true` en su `StudentSeed`), lista para aparecer directo en la cola sin tener que simular el pedido a mano. Las otras 5 cuentas se mantuvieron sin cambios en esta pasada. Carlos se dejó a propósito en Freemium/bajo como ejemplo de "recién empezando".
+
+Para resetear a Sofía después de una demo en vivo sin reiniciar el backend, ver el `UPDATE` SQL puntual documentado en [[modulos/Confianza]] → "Panel Admin" (recordar: `DemoProfileSeeder` es idempotente por email, borrar y no reiniciar la deja ausente, no la recrea).
 
 ## Fotos demo (Data/DemoAssets)
 
@@ -64,7 +68,7 @@ Los `.jpg` de `backend/CasaConSi.Api/Data/DemoAssets/` son la fuente que `DemoPr
 Estado 2026-08-08:
 
 | Cuenta        | Foto de perfil     | Fotos de casa                             | Origen                    |
-| ------------- | ------------------- | ------------------------------------------ | ------------------------- |
+| ------------- | ------------------- | ------------------------------------------ | -------------------------- |
 | Elena Ruiz    | `elena-ruiz.jpg`     | `elena-casa.jpg` (frente), `elena-living.jpg`, `elena-cocina.jpg`, `elena-habitacion.jpg` | Fotos reales, propias de Elena (set completo) |
 | Rosa Martínez | `rosa-martinez.jpg`  | `casa-living.jpg`, `casa-cocina.jpg`, `casa-bano.jpg`, `casa-habitacion.jpg` | Placeholders genéricos compartidos |
 | Carlos Díaz   | `carlos-diaz.jpg`    | mismos 4 `casa-*.jpg` de arriba            | Placeholders genéricos compartidos |

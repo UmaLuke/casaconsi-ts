@@ -23,7 +23,9 @@ export const LoginModal = () => {
         modal.close();
       }
 
-      navigate(user.role === 'host' ? '/descubrir' : '/explorar');
+      navigate(
+        user.role === 'host' ? '/descubrir' : user.role === 'advisor' ? '/asesorias' : '/explorar',
+      );
     } catch (error) {
       const message = error instanceof AuthError
         ? error.message

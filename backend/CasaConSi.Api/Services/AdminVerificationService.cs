@@ -106,6 +106,14 @@ public class AdminVerificationService : IAdminVerificationService
             RejectionReason = v.AltaConfianzaRejectionReason,
             BasicItems = basicItems,
             AltaConfianzaItems = altaConfianzaItems,
+            Reference1 = v.Reference1Name is not null
+                ? new AdminVerificationReferenceDto { Name = v.Reference1Name, Phone = v.Reference1Phone ?? "", Relationship = v.Reference1Relationship ?? "" }
+                : null,
+            Reference2 = v.Reference2Name is not null
+                ? new AdminVerificationReferenceDto { Name = v.Reference2Name, Phone = v.Reference2Phone ?? "", Relationship = v.Reference2Relationship ?? "" }
+                : null,
+            CriminalRecordDocumentUrl = v.CriminalRecordDocumentPath is not null ? $"/uploads/{v.CriminalRecordDocumentPath}" : null,
+            CriminalRecordDocumentUploadedAtUtc = v.CriminalRecordDocumentUploadedAtUtc,
         };
     }
 }

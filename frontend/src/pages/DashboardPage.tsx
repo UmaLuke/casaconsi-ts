@@ -7,12 +7,24 @@ import {
 } from 'lucide-react';
 import { BrandLogo } from '../components/common/BrandLogo';
 import { resolveAvatarUrl } from '../utils/avatar';
+import {useEffect, useState} from 'react';
+import {getVerificationQueue} from '../services/adminService';
 
 // Acceso exclusivo de administración. El gate real vive en <ProtectedRoute requireAdmin>
 // (App.tsx) — para cuando se renderiza este componente, user ya no es null y
 // user.isAdmin ya es true. El chequeo de abajo es solo un resguardo defensivo.
 export const DashboardPage = () => {
-  const { user, logout } = useAuth();
+  const { user, token, logout } = useAuth();
+  const [pendingVerifications, setPendingVerifications] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+    getVerificationQueue(token)
+      .then((items) => { if (!cancelled) setPendingVerifications(items.length); })
+      .catch(() => { if (!cancelled) setPendingVerifications(null); });
+    return () => { cancelled = true; };
+  }, [token]);
 
   if (!user) return null;
 
@@ -117,18 +129,29 @@ export const DashboardPage = () => {
               </div>
               <div className="card bg-white shadow-sm border-2 border-brand-orange">
                 <div className="card-body p-6">
-                  <h2 className="card-title text-slate-500 text-sm">Espacios publicados</h2>
+                  <h2 className="card-title text-slate-500 text-sm">Casas publicadas</h2>
                   <p className="text-4xl font-black text-brand-orange">—</p>
                   <p className="text-xs text-slate-400 font-bold mt-2">Pendiente de conectar</p>
                 </div>
               </div>
-              <div className="card bg-white shadow-sm border-2 border-brand-orange">
+              <Link
+                to="/dashboard/verificaciones"
+                className="card bg-white shadow-sm border-2 border-brand-orange hover:shadow-md transition-shadow"
+              >
                 <div className="card-body p-6">
                   <h2 className="card-title text-slate-500 text-sm">Verificaciones pendientes</h2>
-                  <p className="text-4xl font-black text-brand-teal">—</p>
-                  <p className="text-xs text-slate-400 font-bold mt-2">Pendiente de conectar</p>
+                  <p className="text-4xl font-black text-brand-teal">
+                    {pendingVerifications === null ? '—' : pendingVerifications}
+                  </p>
+                  <p className="text-xs text-slate-400 font-bold mt-2">
+                    {pendingVerifications === null
+                      ? 'Pendiente de conectar'
+                      : pendingVerifications === 0
+                        ? 'Al día'
+                        : 'Esperando revisión de staff'}
+                  </p>
                 </div>
-              </div>
+              </Link>
             </div>
 
             <div className="w-full h-64 bg-white border-2 border-brand-orange border-dashed rounded-2xl flex items-center justify-center">

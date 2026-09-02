@@ -29,6 +29,10 @@ public class AdminVerificationDetailDto
     public DateTime? RequestedAtUtc { get; set; }
     public DateTime? ReviewedAtUtc { get; set; }
     public string? RejectionReason { get; set; }
+    public AdminVerificationReferenceDto? Reference1 { get; set; }
+    public AdminVerificationReferenceDto? Reference2 { get; set; }
+    public string? CriminalRecordDocumentUrl { get; set; }
+    public DateTime? CriminalRecordDocumentUploadedAtUtc { get; set; }
     public List<AdminVerificationItemDto> BasicItems { get; set; } = new();
     public List<AdminVerificationItemDto> AltaConfianzaItems { get; set; } = new();
 }
@@ -36,4 +40,11 @@ public class AdminVerificationDetailDto
 public class AdminVerificationRejectRequestDto
 {
     public required string Reason { get; set; }
+}
+
+public class AdminVerificationReferenceDto
+{
+    public required string Name { get; set; }
+    public required string Phone { get; set; }
+    public required string Relationship { get; set; }
 }

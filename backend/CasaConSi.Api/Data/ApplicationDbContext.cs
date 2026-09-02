@@ -18,6 +18,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Space> Spaces => Set<Space>();
     public DbSet<ProfileVerification> ProfileVerifications => Set<ProfileVerification>();
     public DbSet<Message> Messages => Set<Message>();
+    public DbSet<AdvisorySession> AdvisorySessions => Set<AdvisorySession>();
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -102,6 +103,18 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<ApplicationUser>(entity =>
         {
             entity.Property(u => u.GalleryPhotoPaths).HasDefaultValueSql("ARRAY[]::text[]");
+        });
+
+        // Ver docs/vault-casaconsi/modulos/Asesorias.md — AdvisorUserId no
+        // hace cascade (no queremos borrar el historial de sesiones si se da de
+        // baja un asesor), ClientUserId sí (igual criterio que Match/ProfileLike).
+        builder.Entity<AdvisorySession>(entity =>
+        {
+            entity.HasIndex(a => new { a.AdvisorUserId, a.ScheduledAt });
+            entity.HasIndex(a => a.ClientUserId);
+            entity.HasOne<ApplicationUser>().WithMany().HasForeignKey(a => a.AdvisorUserId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<ApplicationUser>().WithMany().HasForeignKey(a => a.ClientUserId).OnDelete(DeleteBehavior.Cascade);
+            entity.Property(a => a.Price).HasColumnType("numeric(10,2)");
         });
 
         // Acá van las configuraciones de Space, etc. cuando llegue ese módulo

@@ -132,7 +132,14 @@ export const App = () => {
             }
           />
 
-          <Route path="/asesorias" element={<AdvisoryPage />} />
+          <Route
+            path="/asesorias"
+            element={
+              <ProtectedRoute>
+                <AdvisoryPage />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </AuthProvider>
     </Router>

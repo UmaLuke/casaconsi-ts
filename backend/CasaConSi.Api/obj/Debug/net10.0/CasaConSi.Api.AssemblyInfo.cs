@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CasaConSi.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+98e9710b256c0cfb8536b6572d654d044bcb2c3e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7884d04c57795f022b310dfb4e253ae2587b02cf")]
 [assembly: System.Reflection.AssemblyProductAttribute("CasaConSi.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CasaConSi.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

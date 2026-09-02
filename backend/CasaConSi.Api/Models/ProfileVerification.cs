@@ -31,5 +31,13 @@ public class ProfileVerification
     public DateTime? AltaConfianzaReviewedAtUtc { get; set; }
     public string? AltaConfianzaReviewedByUserId { get; set; }
     public string? AltaConfianzaRejectionReason { get; set; }
+    public string? Reference1Name { get; set; }
+    public string? Reference1Phone { get; set; }
+    public string? Reference1Relationship { get; set; }
+    public string? Reference2Name { get; set; }
+    public string? Reference2Phone { get; set; }
+    public string? Reference2Relationship { get; set; }
+    public string? CriminalRecordDocumentPath { get; set; }
+    public DateTime? CriminalRecordDocumentUploadedAtUtc { get; set; }
     public DateTime UpdatedAtUtc { get; set; } = DateTime.UtcNow;
 }

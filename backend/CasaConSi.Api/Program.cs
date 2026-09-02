@@ -104,6 +104,9 @@ builder.Services.AddScoped<CasaConSi.Api.Services.Interfaces.ISpaceService, Casa
 // Servicios propios del módulo de Chat (SignalR), habilitado por Match
 builder.Services.AddScoped<CasaConSi.Api.Repositories.Interfaces.IChatRepository, CasaConSi.Api.Repositories.ChatRepository>();
 builder.Services.AddScoped<CasaConSi.Api.Services.Interfaces.IChatService, CasaConSi.Api.Services.ChatService>();
+
+builder.Services.AddScoped<CasaConSi.Api.Repositories.Interfaces.IAdvisoryRepository, CasaConSi.Api.Repositories.AdvisoryRepository>();
+builder.Services.AddScoped<CasaConSi.Api.Services.Interfaces.IAdvisoryService, CasaConSi.Api.Services.AdvisoryService>();
 // Data Protection: cifra el DNI antes de guardarlo (ver ProfileService). Las
 // claves se persisten en disco para que sobrevivan a un reinicio del proceso
 // en desarrollo — en Azure, esto debería apuntar a Azure Key Vault / Blob
@@ -157,6 +160,7 @@ if (app.Environment.IsDevelopment())
     {
         await CasaConSi.Api.Data.DemoProfileSeeder.SeedAsync(demoScope.ServiceProvider);
         await CasaConSi.Api.Data.DemoSpaceSeeder.SeedAsync(demoScope.ServiceProvider);
+        await CasaConSi.Api.Data.DemoAdvisorSeeder.SeedAsync(demoScope.ServiceProvider);
     }
     catch (Exception ex)
     {

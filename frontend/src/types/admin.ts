@@ -26,4 +26,14 @@ export interface AdminVerificationDetail {
   rejectionReason: string | null;
   basicItems: AdminVerificationItem[];
   altaConfianzaItems: AdminVerificationItem[];
+  reference1: AdminVerificationReference | null;
+  reference2: AdminVerificationReference | null;
+  criminalRecordDocumentUrl: string | null;
+  criminalRecordDocumentUploadedAtUtc: string | null;
+}
+
+export interface AdminVerificationReference {
+  name: string;
+  phone: string;
+  relationship: string;
 }

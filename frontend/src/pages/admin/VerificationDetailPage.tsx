@@ -4,10 +4,10 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   Home, Users, MessageSquare, Settings,
   LogOut, ChevronRight, BarChart3, ShieldCheck,
-  ArrowLeft, CheckCircle2, XCircle, Clock,
+  ArrowLeft, CheckCircle2, XCircle, Clock, FileText, ExternalLink,
 } from 'lucide-react';
 import { BrandLogo } from '../../components/common/BrandLogo';
-import { resolveAvatarUrl } from '../../utils/avatar';
+import { resolveAvatarUrl, resolveUploadedFileUrl } from '../../utils/avatar';
 import { useAuth } from '../../hooks/useAuth';
 import { getVerificationDetail, approveVerification, rejectVerification } from '../../services/adminService';
 import type { AdminVerificationDetail } from '../../types/admin';
@@ -239,6 +239,65 @@ export const VerificationDetailPage = () => {
                       </li>
                     ))}
                   </ul>
+                </div>
+
+                <div className="bg-white border border-slate-200 rounded-2xl p-5">
+                  <p className="text-sm font-extrabold text-slate-900">Evidencia cargada por el usuario</p>
+                  <p className="text-xs text-slate-400 mb-3">
+                    Referencias personales y certificado de antecedentes penales adjuntados desde el perfil.
+                  </p>
+
+                  {!detail.reference1 && !detail.reference2 && !detail.criminalRecordDocumentUrl ? (
+                    <p className="text-sm text-slate-400 italic py-1">Todavía no cargó ninguna evidencia.</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {(detail.reference1 || detail.reference2) && (
+                        <div>
+                          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-2">
+                            Referencias personales
+                          </p>
+                          <div className="grid sm:grid-cols-2 gap-3">
+                            {[detail.reference1, detail.reference2].map((ref, idx) => (
+                              ref ? (
+                                <div key={idx} className="border border-slate-100 rounded-xl p-3 bg-slate-50/60">
+                                  <p className="text-sm font-bold text-slate-800">{ref.name}</p>
+                                  <p className="text-xs text-slate-500 mt-0.5">{ref.phone}</p>
+                                  <p className="text-xs text-slate-400 mt-0.5">Vínculo: {ref.relationship}</p>
+                                </div>
+                              ) : (
+                                <div key={idx} className="border border-dashed border-slate-200 rounded-xl p-3 flex items-center">
+                                  <p className="text-xs text-slate-300 italic">Referencia {idx + 1} sin cargar</p>
+                                </div>
+                              )
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {detail.criminalRecordDocumentUrl && (
+                        <div>
+                          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-2">
+                            Certificado de antecedentes penales
+                          </p>
+                          
+                            href={resolveUploadedFileUrl(detail.criminalRecordDocumentUrl)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-2 text-sm font-bold text-brand-teal hover:text-brand-navy border border-slate-200 hover:border-brand-teal/40 rounded-xl px-3 py-2 transition-colors"
+                          <a>
+                            <FileText className="size-4" />
+                            Ver documento adjuntado
+                            <ExternalLink className="size-3.5 text-slate-400" />
+                          </a>
+                          {detail.criminalRecordDocumentUploadedAtUtc && (
+                            <p className="text-[11px] text-slate-400 mt-1.5">
+                              Subido el {new Date(detail.criminalRecordDocumentUploadedAtUtc).toLocaleDateString('es-AR')}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex gap-2.5 bg-slate-50 rounded-xl p-4">

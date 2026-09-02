@@ -23,6 +23,44 @@ namespace CasaConSi.Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("CasaConSi.Api.Models.AdvisorySession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AdvisorUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ClientUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<DateTime>("ScheduledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("SessionType")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientUserId");
+
+                    b.HasIndex("AdvisorUserId", "ScheduledAt");
+
+                    b.ToTable("AdvisorySessions");
+                });
+
             modelBuilder.Entity("CasaConSi.Api.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -32,6 +70,9 @@ namespace CasaConSi.Api.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Avatar")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Bio")
                         .HasColumnType("text");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -55,6 +96,9 @@ namespace CasaConSi.Api.Migrations
                         .HasColumnType("integer");
 
                     b.Property<bool>("IsDemoUser")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPrimaryAdvisor")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("LockoutEnabled")
@@ -267,6 +311,12 @@ namespace CasaConSi.Api.Migrations
                     b.Property<bool>("CreditStatusVerified")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("CriminalRecordDocumentPath")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("CriminalRecordDocumentUploadedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<bool>("CriminalRecordVerified")
                         .HasColumnType("boolean");
 
@@ -278,6 +328,24 @@ namespace CasaConSi.Api.Migrations
 
                     b.Property<bool>("ProofOfStatusVerified")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("Reference1Name")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Reference1Phone")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Reference1Relationship")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Reference2Name")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Reference2Phone")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Reference2Relationship")
+                        .HasColumnType("text");
 
                     b.Property<bool>("SocialMediaVerified")
                         .HasColumnType("boolean");
@@ -595,6 +663,21 @@ namespace CasaConSi.Api.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("CasaConSi.Api.Models.AdvisorySession", b =>
+                {
+                    b.HasOne("CasaConSi.Api.Models.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("AdvisorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CasaConSi.Api.Models.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("ClientUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("CasaConSi.Api.Models.HostProfile", b =>
