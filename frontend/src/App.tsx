@@ -20,7 +20,8 @@ import { InterestedStudentsPage } from './pages/InterestedStudentsPage';
 import { StudentDetailPage } from './pages/StudentDetailPage';
 import { VerificationsQueuePage } from './pages/admin/VerificationsQueuePage';
 import { VerificationDetailPage } from './pages/admin/VerificationDetailPage';
-
+import { MySpacesPage } from './pages/MySpacesPage';
+import { NewSpacePage } from './pages/NewSpacePage';
 
 const LandingPageLayout = () => {
   return (
@@ -96,8 +97,22 @@ export const App = () => {
               </ProtectedRoute>
             }
           />
-          <Route path="/explorar" element={<ExploreSpacesPage />} />
-          <Route path="/espacios/:id" element={<SpaceDetailPage />} />
+          <Route
+            path="/explorar"
+            element={
+              <ProtectedRoute>
+                <ExploreSpacesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/espacios/:id"
+            element={
+              <ProtectedRoute>
+                <SpaceDetailPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/descubrir"
             element={
@@ -114,7 +129,6 @@ export const App = () => {
               </ProtectedRoute>
             }
           />
-          
           <Route
             path="/interesados"
             element={
@@ -131,12 +145,27 @@ export const App = () => {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/asesorias"
             element={
               <ProtectedRoute>
                 <AdvisoryPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mis-espacios"
+            element={
+              <ProtectedRoute>
+                <MySpacesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mis-espacios/nuevo"
+            element={
+              <ProtectedRoute>
+                <NewSpacePage />
               </ProtectedRoute>
             }
           />

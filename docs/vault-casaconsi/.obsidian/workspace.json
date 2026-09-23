@@ -4,25 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "f84a1eb8317cbf9f",
+        "id": "94929354c694b7df",
         "type": "tabs",
         "children": [
           {
-            "id": "d6149cd57eeeb5f0",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "datos-demo.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "datos-demo"
-            }
-          },
-          {
-            "id": "b748ad3009e0439d",
+            "id": "56bf6c27ea9b4476",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -35,8 +21,7 @@
               "title": "datos-demo"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -186,10 +171,12 @@
       "command-palette:Abrir paleta de comandos": false
     }
   },
-  "active": "b748ad3009e0439d",
+  "active": "56bf6c27ea9b4476",
   "lastOpenFiles": [
     "00-Roadmap.md",
     "datos-demo.md",
+    "modulos/Match.md",
+    "convenciones/frontend.md",
     "Cuenta creada.md",
     "00-Roadmap.md.tmp.18852.27fa551d20b8",
     "00-Roadmap.md.tmp.15688.68d69f83d6db",
@@ -208,7 +195,6 @@
     "modulos/Space.md.tmp.4472.c71f14dc03e9",
     "modulos/Perfiles.md.tmp.4472.1adf5dd7498d",
     "convenciones/http-client.md",
-    "convenciones/frontend.md",
     "modulos/Perfiles.md",
     "modulos/Auth.md",
     "glosario.md",

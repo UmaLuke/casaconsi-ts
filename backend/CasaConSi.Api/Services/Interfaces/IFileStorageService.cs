@@ -11,4 +11,7 @@ public interface IFileStorageService
     /// <param name="subfolder">Ej. "profiles/{userId}" — se crea si no existe.</param>
     /// <returns>Ruta relativa (a partir de wwwroot/uploads) del archivo guardado.</returns>
     Task<string> SaveAsync(IFormFile file, string subfolder);
+
+    /// <param name="relativePath">Ruta relativa a wwwroot/uploads (la que devuelve SaveAsync).</param>
+    Task DeleteAsync(string relativePath);
 }

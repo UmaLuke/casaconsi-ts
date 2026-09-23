@@ -12,7 +12,7 @@ tags: [modulo, backend, perfiles, cuestionario]
   - Anfitrión (8 secciones): `PersonalData`, `WorkSituation`, `HousingData`, `ExchangesExpected`, `Health`, `Habits`, `TenantPreferences`, `PersonalPresentation`.
 - **DNI:** nunca en texto plano. Se cifra con ASP.NET Data Protection (`IDataProtector`, purpose fijo `"CasaConSi.Profile.Dni"`) antes de guardarse en `EncryptedDni`. Cambiar ese purpose string invalidaría todos los DNI ya cifrados.
 - **Generation:** no viaja del cliente. Se deriva en el backend a partir de `BirthDate` en cada guardado (`ProfileService.SyncUserGenerationAsync`, umbral `EdadMinimaAdultoMayor = 60`) y se persiste en `ApplicationUser.Generation`.
-- **Columnas promovidas** (fuera del jsonb, para que el futuro módulo Match pueda filtrar/indexar):
+- **Columnas promovidas** (fuera del jsonb, para que el módulo Match pueda filtrar/indexar):
   - Estudiante: `PreferredHostGeneration`, `PreferredNeighborhoods`, `ContributionRangeArs`, `AvailableFrom`, `StayDuration`.
   - Anfitrión: `PreferredTenantGeneration`, `Neighborhood`, `ExpectedAmountRangeArs`, `AvailableRooms`, `HousingType`.
 - Arquitectura respetada: `ProfileController` → `ProfileService` → `ProfileRepository` (el controller nunca toca `StudentProfile`/`HostProfile` ni el `DbContext` directamente).
@@ -37,7 +37,8 @@ tags: [modulo, backend, perfiles, cuestionario]
 - `StudentQuestionnairePage.tsx` / `HostQuestionnairePage.tsx` arrancaban siempre con `createEmptyStudentQuestionnaire()`/`createEmptyHostQuestionnaire()`, sin cargar nunca el perfil ya guardado — **(2026-08-04, bug corregido)**: al entrar al cuestionario con un perfil existente, se veía en blanco, y como el `PUT` es upsert, guardar así pisaba el perfil completo con los defaults vacíos en los campos no vueltos a llenar (riesgo real de pérdida de datos, no solo cosmético).
   - Fix: `questionnaireService.ts` ahora expone `getStudentProfile`/`getHostProfile` (`GET /api/profile/student|host`, devuelven `null` en 404 — primera vez, no es error) y `toStudentQuestionnaireData`/`toHostQuestionnaireData` (inverso de `toStudentPayload`/`toHostPayload`, reconstruye el shape estricto del form a partir del DTO de respuesta).
   - Ambas páginas hacen un `useEffect` al montar que precarga `formData` si ya existe un perfil, con estado de carga (`isLoadingProfile`) y un aviso visible cuando se precargó desde uno existente.
-  - **Fotos deliberadamente no precargadas:** `profilePhoto`/`homeAndRoomPhotos`/`presentationMedia` quedan en `null`/`[]` al reeditar (son campos `File` en el form; el backend solo expone URLs, no los bytes). Esto es seguro porque `ProfileService.SaveStudentProfileAsync`/`SaveHostProfileAsync` nunca tocan las rutas de foto — solo `SaveXPhotosAsync` las pisa, y eso solo se llama si el `FormData` de fotos trae algo. Dejar esos campos vacíos en el form al reeditar equivale a "no subas nada nuevo", no a "borrá lo que había". `housingData.homePhotos` queda igual en `[]` por el mismo motivo por el que ya no se envía en el submit (ver nota en `toHostPayload`).
+  - **Fotos deliberadamente no precargadas:** `profilePhoto`/`homeAndRoomPhotos`/`presentationMedia` quedan en `null`/`[]` al reeditar (son campos `File` en el form; el backend solo expone URLs, no los bytes). Esto es seguro porque `ProfileService.SaveStudentProfileAsync`/`SaveHostProfileAsync` nunca tocan las rutas de foto — solo `SaveXPhotosAsync` las pisa, y eso solo dispara una request si el `FormData` de fotos trae algo (`uploadStudentPhotos`/`uploadHostPhotos` cortan antes si no hay ningún archivo nuevo). Dejar esos campos vacíos en el form al reeditar equivale a "no subas nada nuevo", no a "borrá lo que había".
+  - `housingData.homePhotos` (sección "Datos de la vivienda") queda igual en `[]` al reeditar, por el mismo motivo por el que ya no se envía en el submit — ver nota nueva en Pendiente sobre este campo.
   - Pendiente real: mostrarle a la persona una preview de sus fotos ya cargadas al reeditar (hoy solo hay un texto de aviso genérico, no la foto en sí) — requeriría que `QuestionnaireField`/`ImageField`/`ImagesField` acepten una URL existente además de un `File` nuevo, hoy no lo soportan.
 - **(2026-08-10)** `StudentQuestionnairePage.tsx`/`HostQuestionnairePage.tsx` precargan `personalData.fullName` y `personalData.contactEmail` con `user.name`/`user.email` (del `AuthContext`) al armar el estado inicial del form — antes había que volver a tipearlos a mano justo después de haberlos puesto en `RegisterForm.tsx` un paso antes. Se hace en el inicializador de `useState` (no en el `useEffect` de precarga de perfil existente), así que si ya había un perfil guardado, `toStudentQuestionnaireData`/`toHostQuestionnaireData` lo pisan igual con los valores reales guardados — el prefill de cuenta es solo el punto de partida para un cuestionario nuevo, nunca gana contra un perfil ya completado.
 
@@ -74,10 +75,14 @@ StudentQuestionnairePage.tsx (useEffect al montar)
 ```
 
 ## Pendiente
-- Cuando se construya el módulo Match, resolver el DTO "público" de perfil (sin `Health`, sin DNI) para mostrar en el feed de matches — ver nota de protección de datos en `StudentHealth`/`HostHealth`.
+- **(2026-09-16)** ~~Cuando se construya el módulo Match, resolver el DTO "público" de perfil (sin `Health`, sin DNI) para mostrar en el feed de matches~~ — **ya resuelto**: el módulo Match ya existe (`MatchService`, ver [[Match]]) y consume `ProfileRepository` en modo solo-lectura, pero nunca reutiliza `StudentProfileResponseDto`/`HostProfileResponseDto` completos. Cada DTO de salida (`MatchFeedItemDto`, `MatchSummaryDto`, `InterestedStudentDto`, `StudentDetailDto`) se arma a mano, campo por campo, copiando solo `FullName`, fotos, `AboutMe`/`Motivation`, barrios y datos de traslado — ninguno incluye `Health` ni el DNI. No existe un "DTO público de perfil" reutilizable entre los distintos endpoints de Match; si se agrega un nuevo endpoint ahí, hay que volver a tener cuidado manualmente de no filtrar `Health`/DNI.
+- **(2026-09-16)** Nuevo hallazgo: `HostQuestionnaireData.housingData.homePhotos` (sección "Datos de la vivienda", `minCount: 4`) es un campo muerto en el formulario del anfitrión — la persona lo completa, pero `toHostPayload` lo excluye explícitamente del payload (`Omit<HostQuestionnaireData['housingData'], 'homePhotos'>`) y nunca se envía al backend. Se solapa conceptualmente con `personalPresentation.homeAndRoomPhotos` (sección "Presentación personal", también fotos del hogar), que sí se sube vía `POST /api/profile/host/photos`. Falta una decisión de producto sobre si son el mismo set de fotos (y en ese caso, sacar el campo duplicado del schema) o si deben ser dos galerías distintas (y en ese caso, conectar `homePhotos` a un endpoint propio).
 
 ## Enlaces relacionados
 - [[../00-Roadmap|00-Roadmap]]
 - [[Match]]
+- [[Space]]
+- [[Cuenta]]
 - [[Auth]]
 - [[../convenciones/backend|convenciones/backend]]
+- [[../convenciones/http-client|convenciones/http-client]]

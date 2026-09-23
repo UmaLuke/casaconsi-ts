@@ -25,5 +25,11 @@ public class SpaceRepository : ISpaceRepository
 
     public async Task AddAsync(Space space) => await _context.Spaces.AddAsync(space);
 
+    public Task DeleteAsync(Space space)
+    {
+        _context.Spaces.Remove(space);
+        return Task.CompletedTask;
+    }
+
     public Task SaveChangesAsync() => _context.SaveChangesAsync();
 }

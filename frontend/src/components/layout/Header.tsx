@@ -32,8 +32,8 @@ export const Header = () => {
   };
 
   // Landing: transparente hasta hacer scroll. Cualquier otra página interna
-  // (Explorar, Descubrir, Mensajes, Asesorías, Dashboard, etc.) usa el mismo
-  // teal de marca.
+  // (Explorar, Interesados, Mis espacios, Mensajes, Asesorías, Dashboard,
+  // etc.) usa el mismo teal de marca.
   let headerBgClass = '';
 
   if (location.pathname === '/') {
@@ -65,7 +65,12 @@ export const Header = () => {
                 </>
               )}
               {user?.role === 'student' && <li><Link to="/explorar">Explorar Casas</Link></li>}
-              {user?.role === 'host' && <li><Link to="/descubrir">Descubrir Perfiles</Link></li>}
+              {user?.role === 'host' && (
+                <>
+                  <li><Link to="/interesados">Interesados</Link></li>
+                  <li><Link to="/mis-espacios">Mis espacios</Link></li>
+                </>
+              )}
             </ul>
           </div>
           
@@ -88,7 +93,10 @@ export const Header = () => {
               <li><Link to="/explorar" className="hover:text-brand-orange hover:bg-transparent transition-colors">Mis solicitudes</Link></li>
             )}
             {user?.role === 'host' && (
-              <li><Link to="/descubrir" className="hover:text-brand-orange hover:bg-transparent transition-colors">Descubrir Perfiles</Link></li>
+              <>
+                <li><Link to="/interesados" className="hover:text-brand-orange hover:bg-transparent transition-colors">Interesados</Link></li>
+                <li><Link to="/mis-espacios" className="hover:text-brand-orange hover:bg-transparent transition-colors">Mis espacios</Link></li>
+              </>
             )}
           </ul>
         </div>

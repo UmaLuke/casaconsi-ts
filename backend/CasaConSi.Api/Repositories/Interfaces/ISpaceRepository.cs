@@ -8,5 +8,6 @@ public interface ISpaceRepository
     Task<Space?> GetByIdAsync(Guid id);
     Task<List<Space>> GetByHostUserIdAsync(string hostUserId);
     Task AddAsync(Space space);
+    Task DeleteAsync(Space space);
     Task SaveChangesAsync();
 }

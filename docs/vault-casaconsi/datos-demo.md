@@ -75,8 +75,22 @@ Estado 2026-08-08:
 
 Regla al sumar fotos reales a otra cuenta: darle nombre de archivo propio (`{nombre}-{algo}.jpg`), no pisar `casa-*.jpg` a menos que la intención sea cambiar el placeholder para los tres a la vez.
 
+## Asesores (Advisor) — agregado 2026-09-16
+
+No estaban documentados en esta ficha. `Data/DemoAdvisorSeeder.cs` (Development, idempotente/upsert, igual criterio que los demás seeders) siembra 4 `ApplicationUser` con `Role == Advisor` (Trabajo Social), staff real de la clienta:
+
+| Nombre | `IsPrimaryAdvisor` | Notas |
+|---|---|---|
+| Lic. Pozzo | ✅ `true` | Toda reserva se asigna internamente a esta cuenta (ver [[modulos/Asesorias]] → "Decisión: reservas centralizadas") |
+| Argañaraz | `false` | — |
+| Britos | `false` | MP `8888` — duplicado con Carrara |
+| Carrara | `false` | MP `8888` — duplicado con Britos, así figura en el doc fuente de la clienta, no es un error de tipeo del seeder |
+
+No se verificaron en esta pasada los emails/contraseña de estas 4 cuentas (no forma parte del alcance de esta auditoría de documentación) — ver `Data/DemoAdvisorSeeder.cs` directamente si hace falta loguearse como alguna.
+
 ## Enlaces relacionados
 - [[modulos/Perfiles]]
 - [[modulos/Space]]
 - [[modulos/Confianza]]
+- [[modulos/Asesorias]]
 - [[00-Roadmap]]

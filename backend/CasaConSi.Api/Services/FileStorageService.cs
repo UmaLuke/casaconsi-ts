@@ -41,4 +41,15 @@ public class FileStorageService : IFileStorageService
         // Ruta relativa a wwwroot/uploads — ProfileService arma la URL pública a partir de esto.
         return $"{subfolder}/{fileName}".Replace('\\', '/');
     }
+
+    public Task DeleteAsync(string relativePath)
+    {
+        var webRoot = _environment.WebRootPath ?? Path.Combine(_environment.ContentRootPath, "wwwroot");
+        var fullPath = Path.Combine(webRoot, "uploads", relativePath);
+        if (File.Exists(fullPath))
+        {
+            File.Delete(fullPath);
+        }
+        return Task.CompletedTask;
+    }
 }

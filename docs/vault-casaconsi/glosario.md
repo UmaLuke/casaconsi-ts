@@ -12,7 +12,7 @@ tags: [glosario]
 - **Puntaje/Índice de confianza:** 0 a 10, uno por ítem de verificación cumplido (identidad, contacto, redes, crediticia, constancia, declaración jurada, referencias, entrevista, antecedentes, historial de convivencia). 1-6 = Perfil básico, 7-10 = Perfil de alta confianza. Ver [[modulos/Confianza]].
 
 ## Roles técnicos (no confundir con roles de negocio)
-- `Role` (enum en `ApplicationUser`): `host` / `student` — mapea a Anfitrión / Estudiante.
+- `Role` (enum `UserRole` en `ApplicationUser`): `host` / `student` / `advisor` **(agregado, ver [[decisiones/ADR-0003-rol-asesor]])** — mapea a Anfitrión / Estudiante / Asesor. Aparte, `ApplicationUser.IsAdmin` es un flag booleano independiente del rol (no un valor más del enum) que habilita el acceso a `/dashboard`.
 
 ## Enlaces relacionados
 - [[00-Roadmap]]

@@ -68,4 +68,75 @@ public class SpaceController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+
+    [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Host")]
+    public async Task<ActionResult<SpaceResponseDto>> Update(Guid id, UpdateSpaceRequestDto request)
+    {
+        try
+        {
+            return Ok(await _spaceService.UpdateSpaceAsync(CurrentUserId, id, request));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPatch("{id:guid}/status")]
+    [Authorize(Roles = "Host")]
+    public async Task<ActionResult<SpaceResponseDto>> UpdateStatus(Guid id, UpdateSpaceStatusRequestDto request)
+    {
+        try
+        {
+            return Ok(await _spaceService.UpdateSpaceStatusAsync(CurrentUserId, id, request.IsActive));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Host")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        try
+        {
+            await _spaceService.DeleteSpaceAsync(CurrentUserId, id);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpDelete("{id:guid}/photos/{index:int}")]
+    [Authorize(Roles = "Host")]
+    public async Task<ActionResult<SpaceResponseDto>> DeletePhoto(Guid id, int index)
+    {
+        try
+        {
+            return Ok(await _spaceService.DeleteSpacePhotoAsync(CurrentUserId, id, index));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPut("{id:guid}/photos/order")]
+    [Authorize(Roles = "Host")]
+    public async Task<ActionResult<SpaceResponseDto>> ReorderPhotos(Guid id, ReorderSpacePhotosRequestDto request)
+    {
+        try
+        {
+            return Ok(await _spaceService.ReorderSpacePhotosAsync(CurrentUserId, id, request.Order));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }

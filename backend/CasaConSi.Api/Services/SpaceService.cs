@@ -109,6 +109,121 @@ public class SpaceService : ISpaceService
             ?? throw new InvalidOperationException("No se pudo actualizar la publicación.");
     }
 
+    public async Task<SpaceResponseDto> UpdateSpaceAsync(string hostUserId, Guid spaceId, UpdateSpaceRequestDto request)
+    {
+        var space = await _spaceRepository.GetByIdAsync(spaceId)
+            ?? throw new InvalidOperationException("La publicación indicada no existe.");
+
+        if (space.HostUserId != hostUserId)
+        {
+            throw new InvalidOperationException("Esta publicación no te pertenece.");
+        }
+
+        space.Title = request.Title;
+        space.Description = request.Description;
+        space.Location = request.Location;
+        space.Neighborhood = request.Neighborhood;
+        space.HostTypeLabel = request.HostType;
+        space.PriceArs = request.Price;
+        space.Purpose = request.Purpose;
+        space.Duration = request.Duration;
+        space.Amenities = request.Amenities;
+        space.UpdatedAt = DateTime.UtcNow;
+
+        await _spaceRepository.SaveChangesAsync();
+
+        return await ToResponseDtoAsync(space)
+            ?? throw new InvalidOperationException("No se pudo actualizar la publicación.");
+    }
+
+    public async Task<SpaceResponseDto> UpdateSpaceStatusAsync(string hostUserId, Guid spaceId, bool isActive)
+    {
+        var space = await _spaceRepository.GetByIdAsync(spaceId)
+            ?? throw new InvalidOperationException("La publicación indicada no existe.");
+
+        if (space.HostUserId != hostUserId)
+        {
+            throw new InvalidOperationException("Esta publicación no te pertenece.");
+        }
+
+        space.IsActive = isActive;
+        space.UpdatedAt = DateTime.UtcNow;
+        await _spaceRepository.SaveChangesAsync();
+
+        return await ToResponseDtoAsync(space)
+            ?? throw new InvalidOperationException("No se pudo actualizar la publicación.");
+    }
+
+    public async Task DeleteSpaceAsync(string hostUserId, Guid spaceId)
+    {
+        var space = await _spaceRepository.GetByIdAsync(spaceId)
+            ?? throw new InvalidOperationException("La publicación indicada no existe.");
+
+        if (space.HostUserId != hostUserId)
+        {
+            throw new InvalidOperationException("Esta publicación no te pertenece.");
+        }
+
+        foreach (var photoPath in space.PhotoPaths)
+        {
+            await _fileStorageService.DeleteAsync(photoPath);
+        }
+
+        await _spaceRepository.DeleteAsync(space);
+        await _spaceRepository.SaveChangesAsync();
+    }
+
+    public async Task<SpaceResponseDto> DeleteSpacePhotoAsync(string hostUserId, Guid spaceId, int photoIndex)
+    {
+        var space = await _spaceRepository.GetByIdAsync(spaceId)
+            ?? throw new InvalidOperationException("La publicación indicada no existe.");
+
+        if (space.HostUserId != hostUserId)
+        {
+            throw new InvalidOperationException("Esta publicación no te pertenece.");
+        }
+
+        if (photoIndex < 0 || photoIndex >= space.PhotoPaths.Count)
+        {
+            throw new InvalidOperationException("La foto indicada no existe.");
+        }
+
+        var photoPath = space.PhotoPaths[photoIndex];
+        space.PhotoPaths.RemoveAt(photoIndex);
+        await _fileStorageService.DeleteAsync(photoPath);
+
+        space.UpdatedAt = DateTime.UtcNow;
+        await _spaceRepository.SaveChangesAsync();
+
+        return await ToResponseDtoAsync(space)
+            ?? throw new InvalidOperationException("No se pudo actualizar la publicación.");
+    }
+
+    public async Task<SpaceResponseDto> ReorderSpacePhotosAsync(string hostUserId, Guid spaceId, List<int> order)
+    {
+        var space = await _spaceRepository.GetByIdAsync(spaceId)
+            ?? throw new InvalidOperationException("La publicación indicada no existe.");
+
+        if (space.HostUserId != hostUserId)
+        {
+            throw new InvalidOperationException("Esta publicación no te pertenece.");
+        }
+
+        if (order.Count != space.PhotoPaths.Count
+            || order.Distinct().Count() != order.Count
+            || order.Any(i => i < 0 || i >= space.PhotoPaths.Count))
+        {
+            throw new InvalidOperationException("El orden enviado no es válido.");
+        }
+
+        space.PhotoPaths = order.Select(i => space.PhotoPaths[i]).ToList();
+        space.UpdatedAt = DateTime.UtcNow;
+        await _spaceRepository.SaveChangesAsync();
+
+        return await ToResponseDtoAsync(space)
+            ?? throw new InvalidOperationException("No se pudo actualizar la publicación.");
+    }
+
 private async Task<SpaceResponseDto?> ToResponseDtoAsync(Space space)
 {
     var host = await _userManager.FindByIdAsync(space.HostUserId);
@@ -137,6 +252,7 @@ private async Task<SpaceResponseDto?> ToResponseDtoAsync(Space space)
         ImageUrl = photoUrls.Count > 0 ? photoUrls[0] : null,
         PhotoUrls = photoUrls,
         Verified = space.Verified,
+        IsActive = space.IsActive,
         HostAboutMe = hostProfile?.PersonalPresentation.AboutMe,
         HostTrustScore = trustStatus.Score,
         HostTrustLevel = trustStatus.Level,
@@ -159,4 +275,4 @@ private List<string> ToPhotoUrls(Space space, HostProfile? hostProfile)
         ? new List<string> { space.ExternalImageUrl }
         : new List<string>();
     }
-}    
+}
